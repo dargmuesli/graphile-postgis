@@ -2,11 +2,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as pg from "pg";
 import { promisify } from "util";
-import { GraphQLSchema, graphql } from "graphql";
-import { withPgClient, withPgPool } from "../helpers";
-import PostgisPreset from "../../src/index";
-import { makeSchema } from "graphile-build";
-import { makePgService } from "postgraphile/adaptors/pg";
+import { GraphQLSchema, graphql } from "postgraphile/graphql";
+import { withPgClient, withPgPool, makePostGraphileSchema } from "../helpers";
 
 const readFile = promisify(fs.readFile);
 
@@ -15,19 +12,11 @@ const queryFileNames = fs.readdirSync(queriesDir);
 
 const schemas = ["graphile_postgis"];
 
-let gqlSchema: GraphQLSchema;
+let schema: GraphQLSchema;
 
 beforeAll(async () => {
   await withPgPool(async (pool: pg.Pool) => {
-    gqlSchema = await makeSchema({
-      extends: [PostgisPreset],
-      pgServices: [
-        makePgService({
-          pool,
-          schemas,
-        }),
-      ],
-    }).then(it => it.schema);
+    schema = (await makePostGraphileSchema(pool, schemas)).schema;
   });
 });
 
@@ -38,7 +27,7 @@ for (const queryFileName of queryFileNames) {
       "utf8"
     );
     const result = await withPgClient(async (client: pg.PoolClient) =>
-      graphql(gqlSchema, query, null, { pgClient: client })
+      graphql({ schema, source: query, contextValue: { pgClient: client } })
     );
     expect(result).toMatchSnapshot();
   });

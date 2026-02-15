@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "description": "PostGIS support for PostGraphile",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "watch": "tsc -p tsconfig.build.json --watch",
@@ -31,32 +32,24 @@
     "url": "https://github.com/graphile/postgis/issues"
   },
   "homepage": "https://github.com/graphile/postgis#readme",
-  "peerDependencies": {
-    "graphile-build": "^5.0.0-beta.21",
-    "graphile-build-pg": "^5.0.0-beta.25",
-    "graphql": ">=0.6 <16",
-    "pg-sql2": "^5.0.0-beta.6"
-  },
   "devDependencies": {
+    "@dataplan/pg": "^1.0.0-rc.4",
     "@tsconfig/node20": "^20.1.4",
     "@types/debug": "^4.1.5",
-    "@types/jest": "^26.0.22",
-    "concurrently": "^6.0.2",
-    "graphql": "16.1.0-experimental-stream-defer.6",
-    "jest": "^26.6.3",
+    "@types/jest": "^30.0.0",
+    "@types/pg": "^8.16.0",
+    "jest": "^30.2.0",
     "nodemon": "^1.19.1",
-    "postgraphile": "^5.0.0-beta.26",
+    "pg": "^8.14.1",
+    "postgraphile": "^5.0.0-rc.6",
     "prettier": "^3.3.2",
-    "ts-jest": "^26.5.4",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.4.5"
   },
   "dependencies": {
     "debug": "^4.1.1",
     "jest-serializer-graphql-schema": "^5.0.0-1.1",
     "tslib": "^2.6.3"
-  },
-  "resolutions": {
-    "graphql": "16.1.0-experimental-stream-defer.6"
   },
   "files": [
     "dist"

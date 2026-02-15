@@ -2,14 +2,16 @@
   "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
     "allowJs": false,
-    "sourceMap": true,
     "pretty": true,
     "importHelpers": true,
+    "isolatedModules": true,
     "experimentalDecorators": true,
     "noImplicitAny": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedParameters": true,
     "noUnusedLocals": true,
-    "preserveWatchOutput": true
+    "preserveWatchOutput": true,
+    "resolveJsonModule": true,
+    "strict": true
   }
 }

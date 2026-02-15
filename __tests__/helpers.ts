@@ -1,6 +1,6 @@
 import * as pg from "pg";
 import PostgisPreset from "../src";
-import { makeSchema } from "graphile-build";
+import { makeSchema } from "postgraphile/graphile-build";
 import { makePgService } from "postgraphile/adaptors/pg";
 import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
 import { makeV4Preset } from "postgraphile/presets/v4";
