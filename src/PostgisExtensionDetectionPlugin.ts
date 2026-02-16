@@ -5,8 +5,6 @@ import { version } from "../package.json";
 declare global {
   namespace GraphileBuild {
     interface Build {
-      pgGISGraphQLTypesByTypeAndSubtype: Record<string, Record<string, any>>;
-      pgGISGraphQLInterfaceTypesByType: Record<string, Record<number, any>>;
       pgGISGeometryCodec: PgCodec | null;
       pgGISGeographyCodec: PgCodec | null;
       pgGISExtensionSchema: string | null;

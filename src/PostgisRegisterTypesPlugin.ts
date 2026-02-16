@@ -1,6 +1,11 @@
 import { sql } from "@dataplan/pg";
-
-import { GISTypeDetails, Subtype } from ".";
+import type { GraphQLInterfaceType } from "graphql";
+import type {
+  Subtype,
+  TypeRegistry,
+  InterfaceRegistry,
+  PostGISResolvedData,
+} from "./types";
 import { getGISTypeDetails, getGISTypeModifier, getGISTypeName } from "./utils";
 import makeGeoJSONType from "./makeGeoJSONType";
 import { version } from "../package.json";
@@ -10,11 +15,6 @@ declare global {
     interface ScopeScalar {
       isGeoJSONType?: boolean;
     }
-    interface ScopeObject {
-      isPgGISType?: boolean;
-      pgGISTypeName?: string;
-      pgGISTypeDetails?: GISTypeDetails;
-    }
     interface ScopeInterface {
       isPgGISInterface?: boolean;
       isPgGISDimensionInterface?: boolean;
@@ -22,15 +22,8 @@ declare global {
       pgGISZMFlag?: number;
     }
     interface Build {
-      getPostgisTypeByGeometryType(
-        codecName: string,
-        subtype: Subtype,
-        hasZ?: boolean,
-        hasM?: boolean,
-        srid?: number
-      ): any;
-      pgGISIncludedTypes: any[];
-      pgGISIncludeType(Type: any): void;
+      pgGISGraphQLTypesByTypeAndSubtype: TypeRegistry;
+      pgGISGraphQLInterfaceTypesByType: InterfaceRegistry;
     }
   }
   namespace DataplanPg {
@@ -57,8 +50,8 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           event.pgCodec = {
             name: typeName,
             sqlType: sql.identifier(schemaName, typeName),
-            fromPg: (value: any) => value,
-            toPg: (value: any) => value,
+            fromPg: (value: unknown) => value,
+            toPg: (value: unknown) => value,
             attributes: undefined,
             extensions: {
               pg: {
@@ -109,17 +102,17 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         build.getPostgisTypeByGeometryType = function (
           codecName: string,
           subtype: Subtype,
-          hasZ: boolean = false,
-          hasM: boolean = false
+          hasZ = false,
+          hasM = false
         ) {
           const gisTypeKey = getGISTypeName(subtype, hasZ, hasM);
           return constructedTypes?.[codecName]?.[gisTypeKey];
         };
 
         build.pgGISIncludedTypes = [];
-        build.pgGISIncludeType = function (Type: any) {
-          if (Type) {
-            build.pgGISIncludedTypes!.push(Type);
+        build.pgGISIncludeType = function (typeName: string) {
+          if (typeName) {
+            build.pgGISIncludedTypes!.push(typeName);
           }
         };
 
@@ -193,7 +186,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                     description: "Spatial reference identifier (SRID)",
                   },
                 }),
-                resolveType(value: any) {
+                resolveType(value: PostGISResolvedData) {
                   const Type = constructedTypes[codecName]?.[value.__gisType];
                   return Type;
                 },
@@ -240,7 +233,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                     description: "Spatial reference identifier (SRID)",
                   },
                 }),
-                resolveType(value: any) {
+                resolveType(value: PostGISResolvedData) {
                   const Type = constructedTypes[codecName]?.[value.__gisType];
                   return Type;
                 },
@@ -298,12 +291,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                     {
                       isPgGISType: true,
                       pgGISTypeName: codecName,
-                      pgGISTypeDetails: {
-                        subtype,
-                        hasZ,
-                        hasM,
-                        srid: typeDetails.srid,
-                      },
+                      pgGISTypeDetails: typeDetails,
                     },
                     () => ({
                       interfaces: () => {
@@ -311,22 +299,22 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                         const dimZmflag = (hasZ ? 2 : 0) + (hasM ? 1 : 0);
                         const dimInterfaceTypeName =
                           _interfaces[codecName]?.[dimZmflag];
-                        const ifaces: any[] = [];
+                        const ifaces: GraphQLInterfaceType[] = [];
                         if (interfaceTypeName) {
                           const iface = build.getTypeByName(interfaceTypeName);
-                          if (iface) ifaces.push(iface);
+                          if (iface) ifaces.push(iface as GraphQLInterfaceType);
                         }
                         if (dimInterfaceTypeName) {
                           const iface =
                             build.getTypeByName(dimInterfaceTypeName);
-                          if (iface) ifaces.push(iface);
+                          if (iface) ifaces.push(iface as GraphQLInterfaceType);
                         }
                         return ifaces;
                       },
                       fields: () => ({
                         [geojsonFieldName]: {
                           type: build.getTypeByName(geoJSONName) as any,
-                          resolve(data: any) {
+                          resolve(data: PostGISResolvedData) {
                             return data.__geojson;
                           },
                           plan($parent: any) {
@@ -335,7 +323,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                         },
                         srid: {
                           type: new GraphQLNonNull(GraphQLInt),
-                          resolve(data: any) {
+                          resolve(data: PostGISResolvedData) {
                             return data.__srid;
                           },
                           plan($parent: any) {

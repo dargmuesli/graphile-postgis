@@ -1,4 +1,5 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { PostGISResolvedData } from "./types";
 import { GIS_SUBTYPE } from "./constants";
 import { getGISTypeName } from "./utils";
 import { version } from "../package.json";
@@ -26,9 +27,7 @@ export const Postgis_MultiPolygon_PolygonsPlugin: GraphileConfig.Plugin = {
           getPostgisTypeByGeometryType,
           graphql: { GraphQLList },
         } = build;
-        const hasZ = pgGISTypeDetails.hasZ;
-        const hasM = pgGISTypeDetails.hasM;
-        const srid = pgGISTypeDetails.srid;
+        const { hasZ, hasM, srid } = pgGISTypeDetails;
         const polygonTypeName = getPostgisTypeByGeometryType(
           pgGISTypeName!,
           GIS_SUBTYPE.Polygon,
@@ -46,15 +45,17 @@ export const Postgis_MultiPolygon_PolygonsPlugin: GraphileConfig.Plugin = {
           {
             polygons: {
               type: new GraphQLList(Polygon),
-              resolve(data: any) {
-                return data.__geojson.coordinates.map((coord: any) => ({
-                  __gisType: getGISTypeName(GIS_SUBTYPE.Polygon, hasZ, hasM),
-                  __srid: data.__srid,
-                  __geojson: {
-                    type: "Polygon",
-                    coordinates: coord,
-                  },
-                }));
+              resolve(data: PostGISResolvedData) {
+                return (data.__geojson.coordinates as number[][][][]).map(
+                  (coord) => ({
+                    __gisType: getGISTypeName(GIS_SUBTYPE.Polygon, hasZ, hasM),
+                    __srid: data.__srid,
+                    __geojson: {
+                      type: "Polygon",
+                      coordinates: coord,
+                    },
+                  })
+                );
               },
             },
           },

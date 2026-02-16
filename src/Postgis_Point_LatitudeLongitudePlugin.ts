@@ -1,3 +1,4 @@
+import type { PostGISResolvedData } from "./types";
 import { GIS_SUBTYPE } from "./constants";
 import { version } from "../package.json";
 
@@ -41,22 +42,22 @@ export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
           {
             [xFieldName]: {
               type: new GraphQLNonNull(GraphQLFloat),
-              resolve(data: any) {
-                return data.__geojson.coordinates[0];
+              resolve(data: PostGISResolvedData) {
+                return (data.__geojson.coordinates as number[])[0];
               },
             },
             [yFieldName]: {
               type: new GraphQLNonNull(GraphQLFloat),
-              resolve(data: any) {
-                return data.__geojson.coordinates[1];
+              resolve(data: PostGISResolvedData) {
+                return (data.__geojson.coordinates as number[])[1];
               },
             },
             ...(pgGISTypeDetails.hasZ
               ? {
                   [zFieldName]: {
                     type: new GraphQLNonNull(GraphQLFloat),
-                    resolve(data: any) {
-                      return data.__geojson.coordinates[2];
+                    resolve(data: PostGISResolvedData) {
+                      return (data.__geojson.coordinates as number[])[2];
                     },
                   },
                 }

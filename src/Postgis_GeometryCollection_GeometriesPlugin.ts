@@ -1,4 +1,5 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { PostGISResolvedData, Subtype } from "./types";
 import debug from "./debug";
 import { GIS_SUBTYPE } from "./constants";
 import { getGISTypeName } from "./utils";
@@ -28,8 +29,7 @@ export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin 
             pgGISGraphQLInterfaceTypesByType,
             graphql: { GraphQLList },
           } = build;
-          const hasZ = pgGISTypeDetails.hasZ;
-          const hasM = pgGISTypeDetails.hasM;
+          const { hasZ, hasM } = pgGISTypeDetails;
           const zmflag = (hasZ ? 2 : 0) + (hasM ? 1 : 0);
           const interfaceTypeName =
             pgGISGraphQLInterfaceTypesByType[pgGISTypeName!]?.[zmflag];
@@ -50,19 +50,19 @@ export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin 
             {
               geometries: {
                 type: new GraphQLList(Interface),
-                resolve(data: any) {
-                  return data.__geojson.geometries.map((geom: any) => {
+                resolve(data: PostGISResolvedData) {
+                  return data.__geojson.geometries!.map((geom) => {
                     return {
                       __gisType: getGISTypeName(
                         GIS_SUBTYPE[
                           geom.type as keyof typeof GIS_SUBTYPE
-                        ] as any,
+                        ] as Subtype,
                         hasZ,
                         hasM
                       ),
                       __srid: data.__srid,
                       __geojson: geom,
-                    };
+                    } satisfies PostGISResolvedData;
                   });
                 },
               },

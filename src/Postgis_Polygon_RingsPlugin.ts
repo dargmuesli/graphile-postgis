@@ -1,4 +1,5 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { PostGISResolvedData } from "./types";
 import { GIS_SUBTYPE } from "./constants";
 import { getGISTypeName } from "./utils";
 import { version } from "../package.json";
@@ -26,9 +27,7 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
           getPostgisTypeByGeometryType,
           graphql: { GraphQLList },
         } = build;
-        const hasZ = pgGISTypeDetails.hasZ;
-        const hasM = pgGISTypeDetails.hasM;
-        const srid = pgGISTypeDetails.srid;
+        const { hasZ, hasM, srid } = pgGISTypeDetails;
         const lineStringTypeName = getPostgisTypeByGeometryType(
           pgGISTypeName!,
           GIS_SUBTYPE.LineString,
@@ -46,23 +45,25 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
           {
             exterior: {
               type: LineString,
-              resolve(data: any) {
+              resolve(data: PostGISResolvedData) {
                 return {
                   __gisType: getGISTypeName(GIS_SUBTYPE.LineString, hasZ, hasM),
                   __srid: data.__srid,
                   __geojson: {
                     type: "LineString",
-                    coordinates: data.__geojson.coordinates[0],
+                    coordinates: (
+                      data.__geojson.coordinates as number[][][]
+                    )[0],
                   },
                 };
               },
             },
             interiors: {
               type: new GraphQLList(LineString),
-              resolve(data: any) {
-                return data.__geojson.coordinates
+              resolve(data: PostGISResolvedData) {
+                return (data.__geojson.coordinates as number[][][])
                   .slice(1)
-                  .map((coord: any) => ({
+                  .map((coord) => ({
                     __gisType: getGISTypeName(
                       GIS_SUBTYPE.LineString,
                       hasZ,

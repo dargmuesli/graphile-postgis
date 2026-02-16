@@ -45,7 +45,7 @@ export const getGISTypeModifier = (
   hasZ: boolean,
   hasM: boolean,
   srid: number
-): number => {
+) => {
   // Ref: https://github.com/postgis/postgis/blob/2.5.2/liblwgeom/liblwgeom.h.in#L156-L173
   // #define TYPMOD_SET_SRID(typmod, srid) ((typmod) = (((typmod) & 0xE00000FF) | ((srid & 0x001FFFFF)<<8)))
   // #define TYPMOD_SET_TYPE(typmod, type) ((typmod) = (typmod & 0xFFFFFF03) | ((type & 0x0000003F)<<2))
@@ -63,6 +63,6 @@ export const getGISTypeName = (
   subtype: Subtype,
   hasZ: boolean,
   hasM: boolean
-): string => {
+) => {
   return `${GIS_SUBTYPE_NAME[subtype]}${hasZ ? "Z" : ""}${hasM ? "M" : ""}`;
 };

@@ -1,4 +1,5 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { PostGISResolvedData } from "./types";
 import { GIS_SUBTYPE } from "./constants";
 import { getGISTypeName } from "./utils";
 import { version } from "../package.json";
@@ -26,9 +27,7 @@ export const Postgis_MultiPoint_PointsPlugin: GraphileConfig.Plugin = {
           getPostgisTypeByGeometryType,
           graphql: { GraphQLList },
         } = build;
-        const hasZ = pgGISTypeDetails.hasZ;
-        const hasM = pgGISTypeDetails.hasM;
-        const srid = pgGISTypeDetails.srid;
+        const { hasZ, hasM, srid } = pgGISTypeDetails;
         const pointTypeName = getPostgisTypeByGeometryType(
           pgGISTypeName!,
           GIS_SUBTYPE.Point,
@@ -46,15 +45,17 @@ export const Postgis_MultiPoint_PointsPlugin: GraphileConfig.Plugin = {
           {
             points: {
               type: new GraphQLList(Point),
-              resolve(data: any) {
-                return data.__geojson.coordinates.map((coord: any) => ({
-                  __gisType: getGISTypeName(GIS_SUBTYPE.Point, hasZ, hasM),
-                  __srid: data.__srid,
-                  __geojson: {
-                    type: "Point",
-                    coordinates: coord,
-                  },
-                }));
+              resolve(data: PostGISResolvedData) {
+                return (data.__geojson.coordinates as number[][]).map(
+                  (coord) => ({
+                    __gisType: getGISTypeName(GIS_SUBTYPE.Point, hasZ, hasM),
+                    __srid: data.__srid,
+                    __geojson: {
+                      type: "Point",
+                      coordinates: coord,
+                    },
+                  })
+                );
               },
             },
           },

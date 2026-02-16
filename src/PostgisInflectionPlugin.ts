@@ -1,44 +1,11 @@
-import { Subtype } from ".";
+import type {
+  GISTypeInflectionDetails,
+  GISInterfaceInflectionDetails,
+  GISDimensionInterfaceInflectionDetails,
+  GISFieldInflectionDetails,
+} from "./types";
 import { SUBTYPE_STRING_BY_SUBTYPE } from "./constants";
 import { version } from "../package.json";
-
-declare global {
-  namespace GraphileBuild {
-    interface Inflection {
-      gisType(
-        this: Inflection,
-        details: {
-          typeName: string;
-          subtype: Subtype;
-          hasZ: boolean;
-          hasM: boolean;
-        }
-      ): string;
-      gisInterfaceName(this: Inflection, details: { typeName: string }): string;
-      gisDimensionInterfaceName(
-        this: Inflection,
-        details: {
-          typeName: string;
-          hasZ: boolean;
-          hasM: boolean;
-        }
-      ): string;
-      geojsonFieldName(this: Inflection): string;
-      gisXFieldName(
-        this: Inflection,
-        details: { typeName: string; scope?: any }
-      ): string;
-      gisYFieldName(
-        this: Inflection,
-        details: { typeName: string; scope?: any }
-      ): string;
-      gisZFieldName(
-        this: Inflection,
-        details: { typeName: string; scope?: any }
-      ): string;
-    }
-  }
-}
 
 export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
   name: "PostgisInflectionPlugin",
@@ -46,15 +13,7 @@ export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
 
   inflection: {
     add: {
-      gisType(
-        _preset,
-        details: {
-          typeName: string;
-          subtype: Subtype;
-          hasZ: boolean;
-          hasM: boolean;
-        }
-      ) {
+      gisType(_preset, details: GISTypeInflectionDetails) {
         const { typeName, subtype, hasZ, hasM } = details;
         return this.upperCamelCase(
           [
@@ -67,16 +26,12 @@ export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
             .join("-")
         );
       },
-      gisInterfaceName(_preset, details: { typeName: string }) {
+      gisInterfaceName(_preset, details: GISInterfaceInflectionDetails) {
         return this.upperCamelCase(`${details.typeName}-interface`);
       },
       gisDimensionInterfaceName(
         _preset,
-        details: {
-          typeName: string;
-          hasZ: boolean;
-          hasM: boolean;
-        }
+        details: GISDimensionInterfaceInflectionDetails
       ) {
         const { typeName, hasZ, hasM } = details;
         return this.upperCamelCase(
@@ -93,13 +48,13 @@ export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
       geojsonFieldName() {
         return `geojson`;
       },
-      gisXFieldName(_preset, details: { typeName: string; scope?: any }) {
+      gisXFieldName(_preset, details: GISFieldInflectionDetails) {
         return details.typeName === "geography" ? "longitude" : "x";
       },
-      gisYFieldName(_preset, details: { typeName: string; scope?: any }) {
+      gisYFieldName(_preset, details: GISFieldInflectionDetails) {
         return details.typeName === "geography" ? "latitude" : "y";
       },
-      gisZFieldName(_preset, details: { typeName: string; scope?: any }) {
+      gisZFieldName(_preset, details: GISFieldInflectionDetails) {
         return details.typeName === "geography" ? "height" : "z";
       },
     },

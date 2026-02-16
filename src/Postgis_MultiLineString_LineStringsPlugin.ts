@@ -1,4 +1,5 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { PostGISResolvedData } from "./types";
 import { GIS_SUBTYPE } from "./constants";
 import { getGISTypeName } from "./utils";
 import { version } from "../package.json";
@@ -27,9 +28,7 @@ export const Postgis_MultiLineString_LineStringsPlugin: GraphileConfig.Plugin =
             getPostgisTypeByGeometryType,
             graphql: { GraphQLList },
           } = build;
-          const hasZ = pgGISTypeDetails.hasZ;
-          const hasM = pgGISTypeDetails.hasM;
-          const srid = pgGISTypeDetails.srid;
+          const { hasZ, hasM, srid } = pgGISTypeDetails;
           const lineStringTypeName = getPostgisTypeByGeometryType(
             pgGISTypeName!,
             GIS_SUBTYPE.LineString,
@@ -47,19 +46,21 @@ export const Postgis_MultiLineString_LineStringsPlugin: GraphileConfig.Plugin =
             {
               lines: {
                 type: new GraphQLList(LineString),
-                resolve(data: any) {
-                  return data.__geojson.coordinates.map((coord: any) => ({
-                    __gisType: getGISTypeName(
-                      GIS_SUBTYPE.LineString,
-                      hasZ,
-                      hasM
-                    ),
-                    __srid: data.__srid,
-                    __geojson: {
-                      type: "LineString",
-                      coordinates: coord,
-                    },
-                  }));
+                resolve(data: PostGISResolvedData) {
+                  return (data.__geojson.coordinates as number[][][]).map(
+                    (coord) => ({
+                      __gisType: getGISTypeName(
+                        GIS_SUBTYPE.LineString,
+                        hasZ,
+                        hasM
+                      ),
+                      __srid: data.__srid,
+                      __geojson: {
+                        type: "LineString",
+                        coordinates: coord,
+                      },
+                    })
+                  );
                 },
               },
             },
