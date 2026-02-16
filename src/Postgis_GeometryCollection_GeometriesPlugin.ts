@@ -7,21 +7,20 @@ import { version } from "../package.json";
 export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin =
   {
     name: "Postgis_GeometryCollection_GeometriesPlugin",
+    description: "Enhancing the `GeometryCollection` type",
     version,
 
     schema: {
       hooks: {
         GraphQLObjectType_fields(fields, build, context) {
           const {
-            scope: {
-              isPgGISType,
-              pgGISTypeName,
-              pgGISSubtype,
-              pgGISHasZ,
-              pgGISHasM,
-            },
+            scope: { isPgGISType, pgGISTypeName, pgGISTypeDetails },
           } = context;
-          if (!isPgGISType || pgGISSubtype !== GIS_SUBTYPE.GeometryCollection) {
+          if (
+            !isPgGISType ||
+            !pgGISTypeDetails ||
+            pgGISTypeDetails.subtype !== GIS_SUBTYPE.GeometryCollection
+          ) {
             return fields;
           }
           const {
@@ -29,8 +28,8 @@ export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin 
             pgGISGraphQLInterfaceTypesByType,
             graphql: { GraphQLList },
           } = build;
-          const hasZ = pgGISHasZ!;
-          const hasM = pgGISHasM!;
+          const hasZ = pgGISTypeDetails.hasZ;
+          const hasM = pgGISTypeDetails.hasM;
           const zmflag = (hasZ ? 2 : 0) + (hasM ? 1 : 0);
           const interfaceTypeName =
             pgGISGraphQLInterfaceTypesByType[pgGISTypeName!]?.[zmflag];

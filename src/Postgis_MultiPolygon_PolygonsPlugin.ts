@@ -5,22 +5,20 @@ import { version } from "../package.json";
 
 export const Postgis_MultiPolygon_PolygonsPlugin: GraphileConfig.Plugin = {
   name: "Postgis_MultiPolygon_PolygonsPlugin",
+  description: "Enhancing the `MultiPolygon` type",
   version,
 
   schema: {
     hooks: {
       GraphQLObjectType_fields(fields, build, context) {
         const {
-          scope: {
-            isPgGISType,
-            pgGISTypeName,
-            pgGISSubtype,
-            pgGISHasZ,
-            pgGISHasM,
-            pgGISSrid,
-          },
+          scope: { isPgGISType, pgGISTypeName, pgGISTypeDetails },
         } = context;
-        if (!isPgGISType || pgGISSubtype !== GIS_SUBTYPE.MultiPolygon) {
+        if (
+          !isPgGISType ||
+          !pgGISTypeDetails ||
+          pgGISTypeDetails.subtype !== GIS_SUBTYPE.MultiPolygon
+        ) {
           return fields;
         }
         const {
@@ -28,9 +26,9 @@ export const Postgis_MultiPolygon_PolygonsPlugin: GraphileConfig.Plugin = {
           getPostgisTypeByGeometryType,
           graphql: { GraphQLList },
         } = build;
-        const hasZ = pgGISHasZ!;
-        const hasM = pgGISHasM!;
-        const srid = pgGISSrid!;
+        const hasZ = pgGISTypeDetails.hasZ;
+        const hasM = pgGISTypeDetails.hasM;
+        const srid = pgGISTypeDetails.srid;
         const polygonTypeName = getPostgisTypeByGeometryType(
           pgGISTypeName!,
           GIS_SUBTYPE.Polygon,

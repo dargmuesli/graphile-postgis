@@ -3,15 +3,20 @@ import { version } from "../package.json";
 
 export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
   name: "Postgis_Point_LatitudeLongitudePlugin",
+  description: "Enhancing the `Point` type",
   version,
 
   schema: {
     hooks: {
       GraphQLObjectType_fields(fields, build, context) {
         const {
-          scope: { isPgGISType, pgGISTypeName, pgGISSubtype, pgGISHasZ },
+          scope: { isPgGISType, pgGISTypeName, pgGISTypeDetails },
         } = context;
-        if (!isPgGISType || pgGISSubtype !== GIS_SUBTYPE.Point) {
+        if (
+          !isPgGISType ||
+          !pgGISTypeDetails ||
+          pgGISTypeDetails.subtype !== GIS_SUBTYPE.Point
+        ) {
           return fields;
         }
         const {
@@ -19,9 +24,18 @@ export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
           graphql: { GraphQLNonNull, GraphQLFloat },
           inflection,
         } = build;
-        const xFieldName = inflection.gisXFieldName(pgGISTypeName!);
-        const yFieldName = inflection.gisYFieldName(pgGISTypeName!);
-        const zFieldName = inflection.gisZFieldName(pgGISTypeName!);
+        const xFieldName = inflection.gisXFieldName({
+          typeName: pgGISTypeName!,
+          scope: context.scope,
+        });
+        const yFieldName = inflection.gisYFieldName({
+          typeName: pgGISTypeName!,
+          scope: context.scope,
+        });
+        const zFieldName = inflection.gisZFieldName({
+          typeName: pgGISTypeName!,
+          scope: context.scope,
+        });
         return extend(
           fields,
           {
@@ -37,7 +51,7 @@ export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
                 return data.__geojson.coordinates[1];
               },
             },
-            ...(pgGISHasZ
+            ...(pgGISTypeDetails.hasZ
               ? {
                   [zFieldName]: {
                     type: new GraphQLNonNull(GraphQLFloat),

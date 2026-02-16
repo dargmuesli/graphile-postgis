@@ -5,22 +5,20 @@ import { version } from "../package.json";
 
 export const Postgis_MultiPoint_PointsPlugin: GraphileConfig.Plugin = {
   name: "Postgis_MultiPoint_PointsPlugin",
+  description: "Enhancing the `MultiPoint` type",
   version,
 
   schema: {
     hooks: {
       GraphQLObjectType_fields(fields, build, context) {
         const {
-          scope: {
-            isPgGISType,
-            pgGISTypeName,
-            pgGISSubtype,
-            pgGISHasZ,
-            pgGISHasM,
-            pgGISSrid,
-          },
+          scope: { isPgGISType, pgGISTypeName, pgGISTypeDetails },
         } = context;
-        if (!isPgGISType || pgGISSubtype !== GIS_SUBTYPE.MultiPoint) {
+        if (
+          !isPgGISType ||
+          !pgGISTypeDetails ||
+          pgGISTypeDetails.subtype !== GIS_SUBTYPE.MultiPoint
+        ) {
           return fields;
         }
         const {
@@ -28,9 +26,9 @@ export const Postgis_MultiPoint_PointsPlugin: GraphileConfig.Plugin = {
           getPostgisTypeByGeometryType,
           graphql: { GraphQLList },
         } = build;
-        const hasZ = pgGISHasZ!;
-        const hasM = pgGISHasM!;
-        const srid = pgGISSrid!;
+        const hasZ = pgGISTypeDetails.hasZ;
+        const hasM = pgGISTypeDetails.hasM;
+        const srid = pgGISTypeDetails.srid;
         const pointTypeName = getPostgisTypeByGeometryType(
           pgGISTypeName!,
           GIS_SUBTYPE.Point,

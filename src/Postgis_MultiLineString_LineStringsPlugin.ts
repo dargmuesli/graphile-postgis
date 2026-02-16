@@ -6,22 +6,20 @@ import { version } from "../package.json";
 export const Postgis_MultiLineString_LineStringsPlugin: GraphileConfig.Plugin =
   {
     name: "Postgis_MultiLineString_LineStringsPlugin",
+    description: "Enhancing the `MultiLineString` type",
     version,
 
     schema: {
       hooks: {
         GraphQLObjectType_fields(fields, build, context) {
           const {
-            scope: {
-              isPgGISType,
-              pgGISTypeName,
-              pgGISSubtype,
-              pgGISHasZ,
-              pgGISHasM,
-              pgGISSrid,
-            },
+            scope: { isPgGISType, pgGISTypeName, pgGISTypeDetails },
           } = context;
-          if (!isPgGISType || pgGISSubtype !== GIS_SUBTYPE.MultiLineString) {
+          if (
+            !isPgGISType ||
+            !pgGISTypeDetails ||
+            pgGISTypeDetails.subtype !== GIS_SUBTYPE.MultiLineString
+          ) {
             return fields;
           }
           const {
@@ -29,9 +27,9 @@ export const Postgis_MultiLineString_LineStringsPlugin: GraphileConfig.Plugin =
             getPostgisTypeByGeometryType,
             graphql: { GraphQLList },
           } = build;
-          const hasZ = pgGISHasZ!;
-          const hasM = pgGISHasM!;
-          const srid = pgGISSrid!;
+          const hasZ = pgGISTypeDetails.hasZ;
+          const hasM = pgGISTypeDetails.hasM;
+          const srid = pgGISTypeDetails.srid;
           const lineStringTypeName = getPostgisTypeByGeometryType(
             pgGISTypeName!,
             GIS_SUBTYPE.LineString,

@@ -1,4 +1,6 @@
-import { Subtype } from "./interfaces";
+import { sql } from "@dataplan/pg";
+
+import { GISTypeDetails, Subtype } from ".";
 import { getGISTypeDetails, getGISTypeModifier, getGISTypeName } from "./utils";
 import makeGeoJSONType from "./makeGeoJSONType";
 import { version } from "../package.json";
@@ -11,10 +13,7 @@ declare global {
     interface ScopeObject {
       isPgGISType?: boolean;
       pgGISTypeName?: string;
-      pgGISSubtype?: Subtype;
-      pgGISHasZ?: boolean;
-      pgGISHasM?: boolean;
-      pgGISSrid?: number;
+      pgGISTypeDetails?: GISTypeDetails;
     }
     interface ScopeInterface {
       isPgGISInterface?: boolean;
@@ -57,7 +56,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           // Create a text-like scalar codec for PostGIS types
           event.pgCodec = {
             name: typeName,
-            sqlType: `"${schemaName}"."${typeName}"` as any,
+            sqlType: sql.identifier(schemaName, typeName),
             fromPg: (value: any) => value,
             toPg: (value: any) => value,
             attributes: undefined,
@@ -88,10 +87,9 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           pgAttribute.atttypmod !== -1
         ) {
           if (!attribute.extensions) {
-            (attribute as any).extensions = { tags: {} };
+            attribute.extensions = { tags: {} };
           }
-          (attribute.extensions as any).postgisTypeModifier =
-            pgAttribute.atttypmod;
+          attribute.extensions.postgisTypeModifier = pgAttribute.atttypmod;
         }
       },
     },
@@ -174,7 +172,9 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
             _interfaces[codecName] = {};
           }
           if (!_interfaces[codecName][zmflag]) {
-            const interfaceName = inflection.gisInterfaceName(codecName);
+            const interfaceName = inflection.gisInterfaceName({
+              typeName: codecName,
+            });
             build.registerInterfaceType(
               interfaceName,
               {
@@ -217,11 +217,11 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
             _interfaces[codecName] = {};
           }
           if (!_interfaces[codecName][zmflag]) {
-            const interfaceName = inflection.gisDimensionInterfaceName(
-              codecName,
+            const interfaceName = inflection.gisDimensionInterfaceName({
+              typeName: codecName,
               hasZ,
-              hasM
-            );
+              hasM,
+            });
             build.registerInterfaceType(
               interfaceName,
               {
@@ -286,22 +286,24 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                 );
 
                 if (!constructedTypes[codecName][gisTypeKey]) {
-                  const typeName = inflection.gisType(
-                    codecName,
+                  const typeName = inflection.gisType({
+                    typeName: codecName,
                     subtype,
                     hasZ,
-                    hasM
-                  );
+                    hasM,
+                  });
 
                   build.registerObjectType(
                     typeName,
                     {
                       isPgGISType: true,
                       pgGISTypeName: codecName,
-                      pgGISSubtype: subtype,
-                      pgGISHasZ: hasZ,
-                      pgGISHasM: hasM,
-                      pgGISSrid: typeDetails.srid,
+                      pgGISTypeDetails: {
+                        subtype,
+                        hasZ,
+                        hasM,
+                        srid: typeDetails.srid,
+                      },
                     },
                     () => ({
                       interfaces: () => {

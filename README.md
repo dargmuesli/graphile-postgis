@@ -43,10 +43,18 @@ CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 
 Load the plugin:
 
-```json
-{
-  "extends": ["PostgisPreset"],
-}
+```ts
+import { PostgisPreset } from "@graphile/postgis";
+
+const preset: GraphileConfig.Preset = {
+  extends: [
+    // ... Amber/V4/etc presets
+    PostgisPreset,
+  ],
+  // ...
+};
+
+export default preset;
 ```
 
 #### Querying and mutating

@@ -21,27 +21,58 @@ const PostgisPreset: GraphileConfig.Preset = {
     PostgisRegisterTypesPlugin,
     PostgisColumnsPlugin,
 
-    // Enhancing the `Point` type:
     Postgis_Point_LatitudeLongitudePlugin,
-
-    // Enhancing the `LineString` type:
     Postgis_LineString_PointsPlugin,
-
-    // Enhancing the `Polygon` type:
     Postgis_Polygon_RingsPlugin,
-
-    // Enhancing the `MultiPoint` type:
     Postgis_MultiPoint_PointsPlugin,
-
-    // Enhancing the `MultiLineString` type:
     Postgis_MultiLineString_LineStringsPlugin,
-
-    // Enhancing the `MultiPolygon` type:
     Postgis_MultiPolygon_PolygonsPlugin,
-
-    // Enhancing the `GeometryCollection` type:
     Postgis_GeometryCollection_GeometriesPlugin,
   ],
 };
 
 export default PostgisPreset;
+
+export {
+  PostgisVersionPlugin,
+  PostgisInflectionPlugin,
+  PostgisExtensionDetectionPlugin,
+  PostgisRegisterTypesPlugin,
+  PostgisColumnsPlugin,
+  Postgis_Point_LatitudeLongitudePlugin,
+  Postgis_LineString_PointsPlugin,
+  Postgis_Polygon_RingsPlugin,
+  Postgis_MultiPoint_PointsPlugin,
+  Postgis_MultiLineString_LineStringsPlugin,
+  Postgis_MultiPolygon_PolygonsPlugin,
+  Postgis_GeometryCollection_GeometriesPlugin,
+  PostgisPreset,
+};
+
+export type Subtype = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export interface GISTypeDetails {
+  subtype: Subtype;
+  hasZ: boolean;
+  hasM: boolean;
+  srid: number;
+}
+
+declare global {
+  namespace GraphileConfig {
+    interface Plugins {
+      PostgisVersionPlugin: true;
+      PostgisInflectionPlugin: true;
+      PostgisExtensionDetectionPlugin: true;
+      PostgisRegisterTypesPlugin: true;
+      PostgisColumnsPlugin: true;
+      Postgis_Point_LatitudeLongitudePlugin: true;
+      Postgis_LineString_PointsPlugin: true;
+      Postgis_Polygon_RingsPlugin: true;
+      Postgis_MultiPoint_PointsPlugin: true;
+      Postgis_MultiLineString_LineStringsPlugin: true;
+      Postgis_MultiPolygon_PolygonsPlugin: true;
+      Postgis_GeometryCollection_GeometriesPlugin: true;
+    }
+  }
+}

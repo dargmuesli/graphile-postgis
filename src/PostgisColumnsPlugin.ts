@@ -1,5 +1,4 @@
 import type { PgCodecWithAttributes } from "@dataplan/pg";
-import "./interfaces";
 import { getGISTypeDetails, getGISTypeName } from "./utils";
 import { version } from "../package.json";
 
