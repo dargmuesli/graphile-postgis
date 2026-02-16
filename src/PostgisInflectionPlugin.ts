@@ -5,7 +5,7 @@ import type {
   GISFieldInflectionDetails,
 } from "./types";
 import { SUBTYPE_STRING_BY_SUBTYPE } from "./constants";
-import { version } from "../package.json";
+import { version } from "./version";
 
 export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
   name: "PostgisInflectionPlugin",

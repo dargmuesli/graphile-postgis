@@ -8,7 +8,7 @@ import type {
 } from "./types";
 import { getGISTypeDetails, getGISTypeModifier, getGISTypeName } from "./utils";
 import makeGeoJSONType from "./makeGeoJSONType";
-import { version } from "../package.json";
+import { version } from "./version";
 
 declare global {
   namespace GraphileBuild {

@@ -3,7 +3,7 @@ import type { PostGISResolvedData, Subtype } from "./types";
 import debug from "./debug";
 import { GIS_SUBTYPE } from "./constants";
 import { getGISTypeName } from "./utils";
-import { version } from "../package.json";
+import { version } from "./version";
 
 export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin =
   {

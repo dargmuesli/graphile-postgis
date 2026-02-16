@@ -1,4 +1,4 @@
-import { version } from "../package.json";
+import { version } from "./version";
 
 export const PostgisVersionPlugin: GraphileConfig.Plugin = {
   name: "PostgisVersionPlugin",

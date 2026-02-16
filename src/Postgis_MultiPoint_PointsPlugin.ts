@@ -2,7 +2,7 @@ import type { GraphQLOutputType } from "postgraphile/graphql";
 import type { PostGISResolvedData } from "./types";
 import { GIS_SUBTYPE } from "./constants";
 import { getGISTypeName } from "./utils";
-import { version } from "../package.json";
+import { version } from "./version";
 
 export const Postgis_MultiPoint_PointsPlugin: GraphileConfig.Plugin = {
   name: "Postgis_MultiPoint_PointsPlugin",

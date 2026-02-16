@@ -1,6 +1,6 @@
 import type { PgCodec } from "@dataplan/pg";
 import debug from "./debug";
-import { version } from "../package.json";
+import { version } from "./version";
 
 declare global {
   namespace GraphileBuild {
