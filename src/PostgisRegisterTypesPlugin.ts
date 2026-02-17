@@ -50,13 +50,14 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           event.pgCodec = {
             name: typeName,
             sqlType: sql.identifier(schemaName, typeName),
-            fromPg: (value: unknown) => value,
-            toPg: (value: unknown) => value,
+            fromPg: (value) => value,
+            toPg: (value) => value,
             attributes: undefined,
             extensions: {
               pg: {
+                name: typeName,
                 schemaName,
-                typeName,
+                serviceName: "postgis",
               },
             },
             castFromPg: undefined,
@@ -66,7 +67,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
             isEnum: false,
             hasNaturalOrdering: false,
             hasNaturalEquality: false,
-          } as any;
+          };
         }
       },
 
@@ -93,7 +94,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
       build(build) {
         const { pgGISGeometryCodec, pgGISGeographyCodec } = build;
 
-        if (!pgGISGeometryCodec || !pgGISGeographyCodec) {
+        if (!pgGISGeometryCodec && !pgGISGeographyCodec) {
           return build;
         }
 
@@ -127,7 +128,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           pgGISGeographyCodec,
         } = build;
 
-        if (!pgGISGeometryCodec || !pgGISGeographyCodec) {
+        if (!pgGISGeometryCodec && !pgGISGeographyCodec) {
           return _;
         }
 
@@ -143,16 +144,20 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         // Map geometry and geography codecs to GeoJSON type
         // This makes PostGIS columns appear in the schema with the GeoJSON type
         // as a fallback; specific output types are overridden per-field by PostgisColumnsPlugin
-        build.setGraphQLTypeForPgCodec(
-          pgGISGeometryCodec,
-          ["input", "output"],
-          geoJSONName
-        );
-        build.setGraphQLTypeForPgCodec(
-          pgGISGeographyCodec,
-          ["input", "output"],
-          geoJSONName
-        );
+        if (pgGISGeometryCodec) {
+          build.setGraphQLTypeForPgCodec(
+            pgGISGeometryCodec,
+            ["input", "output"],
+            geoJSONName
+          );
+        }
+        if (pgGISGeographyCodec) {
+          build.setGraphQLTypeForPgCodec(
+            pgGISGeographyCodec,
+            ["input", "output"],
+            geoJSONName
+          );
+        }
 
         const geojsonFieldName = inflection.geojsonFieldName();
         const constructedTypes = build.pgGISGraphQLTypesByTypeAndSubtype;
@@ -177,10 +182,14 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
               },
               () => ({
                 fields: () => ({
-                  [geojsonFieldName]: {
-                    type: build.getTypeByName(geoJSONName) as any,
-                    description: "Converts the object to GeoJSON",
-                  },
+                  ...(build.getTypeByName(geoJSONName)
+                    ? {
+                        [geojsonFieldName]: {
+                          type: build.getTypeByName(geoJSONName),
+                          description: "Converts the object to GeoJSON",
+                        },
+                      }
+                    : {}),
                   srid: {
                     type: new GraphQLNonNull(GraphQLInt),
                     description: "Spatial reference identifier (SRID)",
@@ -224,10 +233,14 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
               },
               () => ({
                 fields: () => ({
-                  [geojsonFieldName]: {
-                    type: build.getTypeByName(geoJSONName) as any,
-                    description: "Converts the object to GeoJSON",
-                  },
+                  ...(build.getTypeByName(geoJSONName)
+                    ? {
+                        [geojsonFieldName]: {
+                          type: build.getTypeByName(geoJSONName),
+                          description: "Converts the object to GeoJSON",
+                        },
+                      }
+                    : {}),
                   srid: {
                     type: new GraphQLNonNull(GraphQLInt),
                     description: "Spatial reference identifier (SRID)",
@@ -312,15 +325,19 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                         return ifaces;
                       },
                       fields: () => ({
-                        [geojsonFieldName]: {
-                          type: build.getTypeByName(geoJSONName) as any,
-                          resolve(data: PostGISResolvedData) {
-                            return data.__geojson;
-                          },
-                          plan($parent: any) {
-                            return $parent.get("__geojson");
-                          },
-                        },
+                        ...(build.getTypeByName(geoJSONName)
+                          ? {
+                              [geojsonFieldName]: {
+                                type: build.getTypeByName(geoJSONName),
+                                resolve(data: PostGISResolvedData) {
+                                  return data.__geojson;
+                                },
+                                plan($parent: any) {
+                                  return $parent.get("__geojson");
+                                },
+                              },
+                            }
+                          : {}),
                         srid: {
                           type: new GraphQLNonNull(GraphQLInt),
                           resolve(data: PostGISResolvedData) {

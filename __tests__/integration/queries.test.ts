@@ -3,7 +3,7 @@ import * as path from "path";
 import * as pg from "pg";
 import { promisify } from "util";
 import { GraphQLSchema, graphql } from "postgraphile/graphql";
-import { withPgClient, withPgPool, makePostGraphileSchema } from "../helpers";
+import { withPgClient, makePostGraphileSchema } from "../helpers";
 
 const readFile = promisify(fs.readFile);
 
@@ -12,12 +12,18 @@ const queryFileNames = fs.readdirSync(queriesDir);
 
 const schemas = ["graphile_postgis"];
 
+let pool: pg.Pool;
 let schema: GraphQLSchema;
 
 beforeAll(async () => {
-  await withPgPool(async (pool: pg.Pool) => {
-    schema = (await makePostGraphileSchema(pool, schemas)).schema;
+  pool = new pg.Pool({
+    connectionString: process.env.TEST_DATABASE_URL,
   });
+  schema = (await makePostGraphileSchema(pool, schemas)).schema;
+});
+
+afterAll(async () => {
+  await pool.end();
 });
 
 for (const queryFileName of queryFileNames) {

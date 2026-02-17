@@ -39,7 +39,7 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
           EXPORTABLE,
         } = build;
 
-        if (!pgGISGeometryCodec || !pgGISGeographyCodec) {
+        if (!pgGISGeometryCodec && !pgGISGeographyCodec) {
           return fields;
         }
 
@@ -56,8 +56,7 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
           }
 
           const codecName = attrCodec.name;
-          const typeModifier =
-            (attribute.extensions as any)?.postgisTypeModifier ?? -1;
+          const typeModifier = attribute.extensions?.postgisTypeModifier ?? -1;
 
           let gisTypeName: string | null = null;
 
@@ -77,7 +76,7 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
             continue;
           }
 
-          const gqlType = build.getTypeByName(gisTypeName);
+          const gqlType = build.getOutputTypeByName(gisTypeName);
           if (!gqlType) {
             continue;
           }
@@ -96,7 +95,7 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
 
           modifiedFields[fieldName] = {
             ...existingField,
-            type: isNotNull ? new GraphQLNonNull(gqlType) : (gqlType as any),
+            type: isNotNull ? new GraphQLNonNull(gqlType) : gqlType,
             resolve(data: any) {
               return data[attributeName];
             },

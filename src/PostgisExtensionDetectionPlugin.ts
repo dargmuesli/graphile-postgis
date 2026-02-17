@@ -26,14 +26,16 @@ export const PostgisExtensionDetectionPlugin: GraphileConfig.Plugin = {
 
         for (const [_name, codec] of Object.entries(build.pgCodecs || {})) {
           const c = codec as PgCodec;
-          if (c.name === "geometry" && (c.extensions as any)?.pg) {
+          if (c.name === "geometry" && c.extensions?.pg) {
             pgGISGeometryCodec = c;
-            pgGISExtensionSchema = (c.extensions as any).pg.schemaName;
+            if (!pgGISExtensionSchema) {
+              pgGISExtensionSchema = c.extensions.pg.schemaName;
+            }
           }
-          if (c.name === "geography" && (c.extensions as any)?.pg) {
+          if (c.name === "geography" && c.extensions?.pg) {
             pgGISGeographyCodec = c;
             if (!pgGISExtensionSchema) {
-              pgGISExtensionSchema = (c.extensions as any).pg.schemaName;
+              pgGISExtensionSchema = c.extensions.pg.schemaName;
             }
           }
         }
