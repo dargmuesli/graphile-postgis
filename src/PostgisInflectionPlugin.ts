@@ -3,9 +3,9 @@ import type {
   GISInterfaceInflectionDetails,
   GISDimensionInterfaceInflectionDetails,
   GISFieldInflectionDetails,
-} from "./types";
-import { SUBTYPE_STRING_BY_SUBTYPE } from "./constants";
-import { version } from "./version";
+} from "./types.ts";
+import { SUBTYPE_STRING_BY_SUBTYPE } from "./constants.ts";
+import { version } from "./version.ts";
 
 export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
   name: "PostgisInflectionPlugin",

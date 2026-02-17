@@ -6,9 +6,9 @@ import type {
   InterfaceRegistry,
   PostGISResolvedData,
 } from "./types";
-import { getGISTypeDetails, getGISTypeModifier, getGISTypeName } from "./utils";
-import makeGeoJSONType from "./makeGeoJSONType";
-import { version } from "./version";
+import { getGISTypeDetails, getGISTypeModifier, getGISTypeName } from "./utils.ts";
+import makeGeoJSONType from "./makeGeoJSONType.ts";
+import { version } from "./version.ts";
 
 declare global {
   namespace GraphileBuild {

@@ -1,6 +1,6 @@
 import type { PgCodecWithAttributes } from "@dataplan/pg";
-import { getGISTypeDetails, getGISTypeName } from "./utils";
-import { version } from "./version";
+import { getGISTypeDetails, getGISTypeName } from "./utils.ts";
+import { version } from "./version.ts";
 
 /**
  * This plugin overrides the GraphQL output type and plan for columns

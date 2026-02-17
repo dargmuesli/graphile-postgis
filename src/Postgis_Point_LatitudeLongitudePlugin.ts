@@ -1,6 +1,6 @@
-import type { PostGISResolvedData } from "./types";
-import { GIS_SUBTYPE } from "./constants";
-import { version } from "./version";
+import type { PostGISResolvedData } from "./types.ts";
+import { GIS_SUBTYPE } from "./constants.ts";
+import { version } from "./version.ts";
 
 export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
   name: "Postgis_Point_LatitudeLongitudePlugin",

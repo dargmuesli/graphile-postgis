@@ -1,9 +1,9 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
-import type { PostGISResolvedData, Subtype } from "./types";
-import debug from "./debug";
-import { GIS_SUBTYPE } from "./constants";
-import { getGISTypeName } from "./utils";
-import { version } from "./version";
+import type { PostGISResolvedData, Subtype } from "./types.ts";
+import debug from "./debug.ts";
+import { GIS_SUBTYPE } from "./constants.ts";
+import { getGISTypeName } from "./utils.ts";
+import { version } from "./version.ts";
 
 export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin =
   {

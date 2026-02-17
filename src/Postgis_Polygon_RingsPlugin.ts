@@ -1,8 +1,8 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
-import type { PostGISResolvedData } from "./types";
-import { GIS_SUBTYPE } from "./constants";
-import { getGISTypeName } from "./utils";
-import { version } from "./version";
+import type { PostGISResolvedData } from "./types.ts";
+import { GIS_SUBTYPE } from "./constants.ts";
+import { getGISTypeName } from "./utils.ts";
+import { version } from "./version.ts";
 
 export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
   name: "Postgis_Polygon_RingsPlugin",

@@ -1,5 +1,5 @@
-import { GISTypeDetails, Subtype } from ".";
-import { GIS_SUBTYPE_NAME } from "./constants";
+import { GISTypeDetails, Subtype } from "./index.ts";
+import { GIS_SUBTYPE_NAME } from "./constants.ts";
 
 export const getGISTypeDetails = (modifier: number): GISTypeDetails => {
   const allZeroesHopefully = modifier >> 24;

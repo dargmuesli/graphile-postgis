@@ -1,17 +1,17 @@
 import type {} from "postgraphile";
 
-import { PostgisVersionPlugin } from "./PostgisVersionPlugin";
-import { PostgisInflectionPlugin } from "./PostgisInflectionPlugin";
-import { PostgisExtensionDetectionPlugin } from "./PostgisExtensionDetectionPlugin";
-import { PostgisRegisterTypesPlugin } from "./PostgisRegisterTypesPlugin";
-import { PostgisColumnsPlugin } from "./PostgisColumnsPlugin";
-import { Postgis_Point_LatitudeLongitudePlugin } from "./Postgis_Point_LatitudeLongitudePlugin";
-import { Postgis_GeometryCollection_GeometriesPlugin } from "./Postgis_GeometryCollection_GeometriesPlugin";
-import { Postgis_LineString_PointsPlugin } from "./Postgis_LineString_PointsPlugin";
-import { Postgis_Polygon_RingsPlugin } from "./Postgis_Polygon_RingsPlugin";
-import { Postgis_MultiPoint_PointsPlugin } from "./Postgis_MultiPoint_PointsPlugin";
-import { Postgis_MultiLineString_LineStringsPlugin } from "./Postgis_MultiLineString_LineStringsPlugin";
-import { Postgis_MultiPolygon_PolygonsPlugin } from "./Postgis_MultiPolygon_PolygonsPlugin";
+import { PostgisVersionPlugin } from "./PostgisVersionPlugin.ts";
+import { PostgisInflectionPlugin } from "./PostgisInflectionPlugin.ts";
+import { PostgisExtensionDetectionPlugin } from "./PostgisExtensionDetectionPlugin.ts";
+import { PostgisRegisterTypesPlugin } from "./PostgisRegisterTypesPlugin.ts";
+import { PostgisColumnsPlugin } from "./PostgisColumnsPlugin.ts";
+import { Postgis_Point_LatitudeLongitudePlugin } from "./Postgis_Point_LatitudeLongitudePlugin.ts";
+import { Postgis_GeometryCollection_GeometriesPlugin } from "./Postgis_GeometryCollection_GeometriesPlugin.ts";
+import { Postgis_LineString_PointsPlugin } from "./Postgis_LineString_PointsPlugin.ts";
+import { Postgis_Polygon_RingsPlugin } from "./Postgis_Polygon_RingsPlugin.ts";
+import { Postgis_MultiPoint_PointsPlugin } from "./Postgis_MultiPoint_PointsPlugin.ts";
+import { Postgis_MultiLineString_LineStringsPlugin } from "./Postgis_MultiLineString_LineStringsPlugin.ts";
+import { Postgis_MultiPolygon_PolygonsPlugin } from "./Postgis_MultiPolygon_PolygonsPlugin.ts";
 
 const PostgisPreset: GraphileConfig.Preset = {
   plugins: [
@@ -59,7 +59,7 @@ export type {
   GISInterfaceInflectionDetails,
   GISDimensionInterfaceInflectionDetails,
   GISFieldInflectionDetails,
-} from "./types";
+} from "./types.ts";
 
 declare global {
   namespace GraphileConfig {
