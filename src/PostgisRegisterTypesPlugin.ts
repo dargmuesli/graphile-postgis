@@ -5,7 +5,7 @@ import type {
   TypeRegistry,
   InterfaceRegistry,
   PostGISResolvedData,
-} from "./types";
+} from "./types.ts";
 import {
   getGISTypeDetails,
   getGISTypeModifier,
@@ -372,7 +372,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
 
       // Ensure all PostGIS types are included in the schema
       GraphQLSchema(schema, build) {
-        if (!build.pgGISGeometryCodec || !build.pgGISGeographyCodec) {
+        if (!build.pgGISGeometryCodec && !build.pgGISGeographyCodec) {
           return schema;
         }
         const types = [...(schema.types || [])];

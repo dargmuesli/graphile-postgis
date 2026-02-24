@@ -40,7 +40,7 @@ export const PostgisExtensionDetectionPlugin: GraphileConfig.Plugin = {
           }
         }
 
-        if (!pgGISGeometryCodec || !pgGISGeographyCodec) {
+        if (!pgGISGeometryCodec && !pgGISGeographyCodec) {
           debug("PostGIS extension not found in database; skipping");
         } else {
           debug("PostGIS plugin enabled");

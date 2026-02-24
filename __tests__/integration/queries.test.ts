@@ -2,8 +2,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as pg from "pg";
 import { promisify } from "util";
-import { GraphQLSchema, graphql } from "postgraphile/graphql";
-import { withPgClient, makePostGraphileSchema } from "../helpers";
+import type { GraphQLSchema } from "postgraphile/graphql";
+import { grafast } from "postgraphile/grafast";
+import { makePostGraphileSchema } from "../helpers";
 
 const readFile = promisify(fs.readFile);
 
@@ -14,12 +15,15 @@ const schemas = ["graphile_postgis"];
 
 let pool: pg.Pool;
 let schema: GraphQLSchema;
+let resolvedPreset: GraphileConfig.ResolvedPreset;
 
 beforeAll(async () => {
   pool = new pg.Pool({
     connectionString: process.env.TEST_DATABASE_URL,
   });
-  schema = (await makePostGraphileSchema(pool, schemas)).schema;
+  const result = await makePostGraphileSchema(pool, schemas);
+  schema = result.schema;
+  resolvedPreset = result.resolvedPreset;
 });
 
 afterAll(async () => {
@@ -32,9 +36,12 @@ for (const queryFileName of queryFileNames) {
       path.resolve(queriesDir, queryFileName),
       "utf8"
     );
-    const result = await withPgClient(async (client: pg.PoolClient) =>
-      graphql({ schema, source: query, contextValue: { pgClient: client } })
-    );
+    const result = await grafast({
+      schema,
+      source: query,
+      resolvedPreset,
+      requestContext: {},
+    });
     expect(result).toMatchSnapshot();
   });
 }

@@ -45,7 +45,7 @@ export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
             .join("-")
         );
       },
-      geojsonFieldName() {
+      geojsonFieldName(_preset) {
         return `geojson`;
       },
       gisXFieldName(_preset, details: GISFieldInflectionDetails) {
