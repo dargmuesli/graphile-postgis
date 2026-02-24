@@ -1,4 +1,9 @@
-import type { PgCodecWithAttributes } from "@dataplan/pg";
+import {
+  TYPES,
+  type PgCodecWithAttributes,
+  type PgSelectSingleStep,
+} from "@dataplan/pg";
+import type { PostGISResolvedData } from "./types.ts";
 import { getGISTypeDetails, getGISTypeName } from "./utils.ts";
 import { version } from "./version.ts";
 
@@ -34,7 +39,6 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
           pgGISGraphQLTypesByTypeAndSubtype: constructedTypes,
           pgGISGraphQLInterfaceTypesByType: _interfaces,
           inflection,
-          sql,
           graphql: { GraphQLNonNull },
           EXPORTABLE,
         } = build;
@@ -96,25 +100,26 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
           modifiedFields[fieldName] = {
             ...existingField,
             type: isNotNull ? new GraphQLNonNull(gqlType) : gqlType,
-            resolve(data: any) {
-              return data[attributeName];
+            resolve(data: PostGISResolvedData) {
+              return data;
             },
             plan: EXPORTABLE(
-              (attributeName, extensionSchema, sql) => ($record: any) => {
-                const colExpr = sql`${$record.getClassStep().alias}.${sql.identifier(attributeName)}`;
-
-                const wrappedExpr = sql`(case when ${colExpr} is null then null else json_build_object(
-                      '__gisType', ${sql.identifier(extensionSchema, "postgis_type_name")}(
-                        ${sql.identifier(extensionSchema, "geometrytype")}(${colExpr}),
-                        ${sql.identifier(extensionSchema, "st_coorddim")}(${colExpr}::text)
-                      ),
-                      '__srid', ${sql.identifier(extensionSchema, "st_srid")}(${colExpr}),
-                      '__geojson', ${sql.identifier(extensionSchema, "st_asgeojson")}(${colExpr})::json
-                    ) end)`;
-
-                return $record.selectExpression(wrappedExpr);
-              },
-              [attributeName, extensionSchema, sql]
+              (TYPES, attributeName, extensionSchema) =>
+                ($record: PgSelectSingleStep) => {
+                  return $record.select((sql) => {
+                    const col = sql.identifier(attributeName);
+                    const extSchema = sql.identifier(extensionSchema);
+                    return sql`(case when ${col} is null then null else json_build_object(
+                        '__gisType', ${extSchema}.postgis_type_name(
+                          ${extSchema}.geometrytype(${col}),
+                          ${extSchema}.st_coorddim(${col}::text)
+                        ),
+                        '__srid', ${extSchema}.st_srid(${col}),
+                        '__geojson', ${extSchema}.st_asgeojson(${col})::json
+                      ) end)`;
+                  }, TYPES.json);
+                },
+              [TYPES, attributeName, extensionSchema]
             ),
           };
         }

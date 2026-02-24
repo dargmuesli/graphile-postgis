@@ -27,7 +27,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-export default function makeGeoJSONType(graphql: any, name = "GeoJSON") {
+
+export default function makeGeoJSONType(
+  graphql: Pick<typeof GraphQL, "Kind">,
+  name = "GeoJSON"
+) {
   const Kind: typeof GraphQL.Kind = graphql.Kind;
 
   function identity<T>(value: T): T {
@@ -36,8 +40,8 @@ export default function makeGeoJSONType(graphql: any, name = "GeoJSON") {
 
   function parseLiteral(
     ast: GraphQL.ValueNode,
-    variables: Maybe<{ [key: string]: any }>
-  ): any {
+    variables: Maybe<{ [key: string]: unknown }>
+  ): unknown {
     switch (ast.kind) {
       case Kind.STRING:
       case Kind.BOOLEAN:
@@ -74,5 +78,5 @@ export default function makeGeoJSONType(graphql: any, name = "GeoJSON") {
     serialize: identity,
     parseValue: identity,
     parseLiteral,
-  } as Omit<GraphQL.GraphQLScalarTypeConfig<any, any>, "name">;
+  };
 }

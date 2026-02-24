@@ -6,7 +6,11 @@ import type {
   InterfaceRegistry,
   PostGISResolvedData,
 } from "./types";
-import { getGISTypeDetails, getGISTypeModifier, getGISTypeName } from "./utils.ts";
+import {
+  getGISTypeDetails,
+  getGISTypeModifier,
+  getGISTypeName,
+} from "./utils.ts";
 import makeGeoJSONType from "./makeGeoJSONType.ts";
 import { version } from "./version.ts";
 
@@ -124,8 +128,8 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         const {
           graphql: { GraphQLInt, GraphQLNonNull },
           inflection,
-          pgGISGeometryCodec,
           pgGISGeographyCodec,
+          pgGISGeometryCodec,
         } = build;
 
         if (!pgGISGeometryCodec && !pgGISGeographyCodec) {
@@ -332,9 +336,6 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                                 resolve(data: PostGISResolvedData) {
                                   return data.__geojson;
                                 },
-                                plan($parent: any) {
-                                  return $parent.get("__geojson");
-                                },
                               },
                             }
                           : {}),
@@ -342,9 +343,6 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                           type: new GraphQLNonNull(GraphQLInt),
                           resolve(data: PostGISResolvedData) {
                             return data.__srid;
-                          },
-                          plan($parent: any) {
-                            return $parent.get("__srid");
                           },
                         },
                       }),
