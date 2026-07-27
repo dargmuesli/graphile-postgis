@@ -1,5 +1,8 @@
 import {
+  pgClassExpression,
+  sql,
   TYPES,
+  type PgClassSingleStep,
   type PgCodecWithAttributes,
   type PgSelectSingleStep,
 } from "@dataplan/pg";
@@ -104,10 +107,11 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
               return data;
             },
             plan: EXPORTABLE(
-              (TYPES, attributeName, extensionSchema) =>
-                ($record: PgSelectSingleStep) => {
-                  return $record.select((sql) => {
-                    const col = sql.identifier(attributeName);
+              (TYPES, attributeName, extensionSchema, pgClassExpression, sql) =>
+                ($record: PgClassSingleStep) => {
+                  const buildExpression = (
+                    col: ReturnType<typeof sql.identifier>
+                  ) => {
                     const extSchema = sql.identifier(extensionSchema);
                     return sql`(case when ${col} is null then null else json_build_object(
                         '__gisType', ${extSchema}.postgis_type_name(
@@ -117,9 +121,27 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
                         '__srid', ${extSchema}.st_srid(${col}),
                         '__geojson', ${extSchema}.st_asgeojson(${col})::json
                       ) end)`;
-                  }, TYPES.json);
+                  };
+
+                  // PgSelectSingleStep (queries) exposes `.select()`, which
+                  // handles referencing the row correctly (joins, subquery
+                  // aliasing, etc.) via its internal scoped-SQL machinery.
+                  if ("select" in $record) {
+                    return ($record as PgSelectSingleStep).select(
+                      () => buildExpression(sql.identifier(attributeName)),
+                      TYPES.json
+                    );
+                  }
+
+                  // PgInsertSingleStep / PgUpdateSingleStep / PgDeleteSingleStep
+                  // (mutations) have no `.select()`; reference the row's own
+                  // alias directly instead, same as their own `.get()` does
+                  // for plain (untransformed) attributes.
+                  const col = sql`${$record.alias}.${sql.identifier(attributeName)}`;
+                  const sqlExpr = pgClassExpression($record, TYPES.json);
+                  return sqlExpr`${buildExpression(col)}`;
                 },
-              [TYPES, attributeName, extensionSchema]
+              [TYPES, attributeName, extensionSchema, pgClassExpression, sql]
             ),
           };
         }
