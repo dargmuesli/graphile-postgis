@@ -1,6 +1,7 @@
 import { sql } from "@dataplan/pg";
 import type { GraphQLInterfaceType } from "graphql";
 import type {
+  GISTypeDetails,
   Subtype,
   TypeRegistry,
   InterfaceRegistry,
@@ -31,8 +32,11 @@ declare global {
     }
   }
   namespace DataplanPg {
-    interface PgCodecAttributeExtensions {
-      postgisTypeModifier?: number;
+    interface PgCodecExtensions {
+      // Set on the type-modifier-specific codecs created by
+      // `pgCodecs_findModifiedPgCodec` below (e.g. for a `geometry(Point,4326)`
+      // column), so schema build can map each one to its narrowed GraphQL type.
+      postgisTypeDetails?: GISTypeDetails;
     }
   }
 }
@@ -75,20 +79,37 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         }
       },
 
-      async pgCodecs_attribute(_info, event) {
-        const { pgAttribute, attribute } = event;
-        if (
-          attribute.codec &&
-          (attribute.codec.name === "geometry" ||
-            attribute.codec.name === "geography") &&
-          pgAttribute.atttypmod != null &&
-          pgAttribute.atttypmod !== -1
-        ) {
-          if (!attribute.extensions) {
-            attribute.extensions = { tags: {} };
-          }
-          attribute.extensions.postgisTypeModifier = pgAttribute.atttypmod;
+      async pgCodecs_findModifiedPgCodec(_info, event) {
+        if (event.pgCodec) return; // Another plugin already handled this
+        const { baseCodec, typeModifier } = event;
+        if (baseCodec.name !== "geometry" && baseCodec.name !== "geography") {
+          return;
         }
+        const modifier =
+          typeof typeModifier === "string"
+            ? parseInt(typeModifier, 10)
+            : typeModifier;
+        if (!Number.isFinite(modifier) || modifier === -1) {
+          // Unconstrained geometry/geography column; the base codec is fine.
+          return;
+        }
+        let typeDetails: GISTypeDetails;
+        try {
+          typeDetails = getGISTypeDetails(modifier);
+        } catch {
+          // Modifier we don't understand; fall back to the base codec rather
+          // than fail the whole introspection.
+          return;
+        }
+        event.pgCodec = {
+          ...baseCodec,
+          name: `${baseCodec.name}_${modifier}`,
+          baseCodec,
+          extensions: {
+            ...baseCodec.extensions,
+            postgisTypeDetails: typeDetails,
+          },
+        };
       },
     },
   },
@@ -145,20 +166,17 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           "Adding GeoJSON type from PostGIS plugin"
         );
 
-        // Map geometry and geography codecs to GeoJSON type
-        // This makes PostGIS columns appear in the schema with the GeoJSON type
-        // as a fallback; specific output types are overridden per-field by PostgisColumnsPlugin
+        // GeoJSON is the input type for all geometry/geography codecs, modified
+        // or not (see Phase 3 below for modified codecs' input mapping). The
+        // base (unconstrained) codecs' output type is set once the base
+        // interfaces have been registered, below.
         if (pgGISGeometryCodec) {
-          build.setGraphQLTypeForPgCodec(
-            pgGISGeometryCodec,
-            ["input", "output"],
-            geoJSONName
-          );
+          build.setGraphQLTypeForPgCodec(pgGISGeometryCodec, "input", geoJSONName);
         }
         if (pgGISGeographyCodec) {
           build.setGraphQLTypeForPgCodec(
             pgGISGeographyCodec,
-            ["input", "output"],
+            "input",
             geoJSONName
           );
         }
@@ -278,6 +296,31 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           }
         }
 
+        // The base (unconstrained) codecs output their top-level interface
+        // (e.g. `GeometryInterface`) - a column/argument/return value only
+        // gets narrowed to a concrete type like `GeometryPoint` once its
+        // codec carries a type modifier (see Phase 3 below).
+        if (pgGISGeometryCodec) {
+          const interfaceTypeName = _interfaces.geometry?.[-1];
+          if (interfaceTypeName) {
+            build.setGraphQLTypeForPgCodec(
+              pgGISGeometryCodec,
+              "output",
+              interfaceTypeName
+            );
+          }
+        }
+        if (pgGISGeographyCodec) {
+          const interfaceTypeName = _interfaces.geography?.[-1];
+          if (interfaceTypeName) {
+            build.setGraphQLTypeForPgCodec(
+              pgGISGeographyCodec,
+              "output",
+              interfaceTypeName
+            );
+          }
+        }
+
         // Phase 2: Register ALL object types (must happen during init)
         const subtypes: Array<Subtype> = [1, 2, 3, 4, 5, 6, 7];
         for (const codecName of ["geometry", "geography"]) {
@@ -364,6 +407,38 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                   ensureGisDimensionInterface(codecName, hasZ, hasM);
               }
             }
+          }
+        }
+
+        // Phase 3: Map every type-modifier-specific codec (e.g. the codec
+        // backing a `geometry(Point,4326)` column, function argument, or
+        // return type - see `pgCodecs_findModifiedPgCodec` above) to its
+        // narrowed GraphQL output type. Because this operates at the codec
+        // level rather than per-attribute, it covers columns, composite
+        // attributes, and function parameters/returns uniformly.
+        for (const codec of Object.values(build.pgCodecs ?? {})) {
+          const baseCodec = codec.baseCodec;
+          if (!baseCodec) continue;
+          const codecName =
+            baseCodec === pgGISGeometryCodec
+              ? "geometry"
+              : baseCodec === pgGISGeographyCodec
+                ? "geography"
+                : null;
+          const typeDetails = codec.extensions?.postgisTypeDetails;
+          if (!codecName || !typeDetails) continue;
+
+          const gisTypeKey = getGISTypeName(
+            typeDetails.subtype,
+            typeDetails.hasZ,
+            typeDetails.hasM
+          );
+          const typeName = constructedTypes[codecName]?.[gisTypeKey];
+          if (typeName && !build.hasGraphQLTypeForPgCodec(codec, "output")) {
+            build.setGraphQLTypeForPgCodec(codec, ["output"], typeName);
+          }
+          if (!build.hasGraphQLTypeForPgCodec(codec, "input")) {
+            build.setGraphQLTypeForPgCodec(codec, ["input"], geoJSONName);
           }
         }
 

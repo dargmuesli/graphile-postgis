@@ -4,14 +4,15 @@ import {
   type PgSelectSingleStep,
 } from "@dataplan/pg";
 import type { PostGISResolvedData } from "./types.ts";
-import { getGISTypeDetails, getGISTypeName } from "./utils.ts";
 import { version } from "./version.ts";
 
 /**
- * This plugin overrides the GraphQL output type and plan for columns
- * that use PostGIS geometry/geography types. It wraps the SQL expression
- * to extract GIS metadata (type name, SRID, GeoJSON) and maps the column
- * to the appropriate PostGIS GraphQL type or interface.
+ * This plugin overrides the plan for columns that use PostGIS geometry/
+ * geography types, wrapping the SQL expression to extract GIS metadata
+ * (type name, SRID, GeoJSON). The GraphQL output type itself (generic
+ * interface vs. a narrowed type like `GeometryPoint`) is determined by
+ * PostgisRegisterTypesPlugin at the codec level, via `pgCodecs_findModifiedPgCodec`
+ * / `setGraphQLTypeForPgCodec`, so it doesn't need to be computed here.
  */
 export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
   name: "PostgisColumnsPlugin",
@@ -36,10 +37,7 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
           pgGISGeometryCodec,
           pgGISGeographyCodec,
           pgGISExtensionSchema,
-          pgGISGraphQLTypesByTypeAndSubtype: constructedTypes,
-          pgGISGraphQLInterfaceTypesByType: _interfaces,
           inflection,
-          graphql: { GraphQLNonNull },
           EXPORTABLE,
         } = build;
 
@@ -55,33 +53,11 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
           codec.attributes
         )) {
           const attrCodec = attribute.codec;
-          if (attrCodec.name !== "geometry" && attrCodec.name !== "geography") {
-            continue;
-          }
-
-          const codecName = attrCodec.name;
-          const typeModifier = attribute.extensions?.postgisTypeModifier ?? -1;
-
-          let gisTypeName: string | null = null;
-
-          if (typeModifier !== -1) {
-            const typeDetails = getGISTypeDetails(typeModifier);
-            const { subtype, hasZ, hasM } = typeDetails;
-            const gisTypeKey = getGISTypeName(subtype, hasZ, hasM);
-            gisTypeName = constructedTypes[codecName]?.[gisTypeKey] ?? null;
-          }
-
-          // Fall back to the base interface if no specific modifier
-          if (!gisTypeName) {
-            gisTypeName = _interfaces[codecName]?.[-1] ?? null;
-          }
-
-          if (!gisTypeName) {
-            continue;
-          }
-
-          const gqlType = build.getOutputTypeByName(gisTypeName);
-          if (!gqlType) {
+          const attrBaseCodec = attrCodec.baseCodec ?? attrCodec;
+          if (
+            attrBaseCodec.name !== "geometry" &&
+            attrBaseCodec.name !== "geography"
+          ) {
             continue;
           }
 
@@ -90,16 +66,13 @@ export const PostgisColumnsPlugin: GraphileConfig.Plugin = {
             codec,
           });
 
-          if (!fields[fieldName]) {
+          const existingField = fields[fieldName];
+          if (!existingField) {
             continue;
           }
 
-          const existingField = fields[fieldName];
-          const isNotNull = attribute.notNull;
-
           modifiedFields[fieldName] = {
             ...existingField,
-            type: isNotNull ? new GraphQLNonNull(gqlType) : gqlType,
             resolve(data: PostGISResolvedData) {
               return data;
             },
