@@ -12,6 +12,7 @@ import {
   getGISTypeModifier,
   getGISTypeName,
 } from "./utils.ts";
+import { geoJsonToWkt } from "./geoJsonToWkt.ts";
 import makeGeoJSONType from "./makeGeoJSONType.ts";
 import { version } from "./version.ts";
 
@@ -59,7 +60,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
             name: typeName,
             sqlType: sql.identifier(schemaName, typeName),
             fromPg: (value) => value,
-            toPg: (value) => value,
+            toPg: (value) => geoJsonToWkt(value),
             attributes: undefined,
             extensions: {
               pg: {
@@ -171,7 +172,11 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         // base (unconstrained) codecs' output type is set once the base
         // interfaces have been registered, below.
         if (pgGISGeometryCodec) {
-          build.setGraphQLTypeForPgCodec(pgGISGeometryCodec, "input", geoJSONName);
+          build.setGraphQLTypeForPgCodec(
+            pgGISGeometryCodec,
+            "input",
+            geoJSONName
+          );
         }
         if (pgGISGeographyCodec) {
           build.setGraphQLTypeForPgCodec(
