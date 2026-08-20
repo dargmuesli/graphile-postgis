@@ -344,3 +344,17 @@ create table graphile_postgis_minimal_type_and_srid.foo (
 );
 insert into graphile_postgis_minimal_type_and_srid.foo (geom_point_27700) values
   (GeomFromEWKT('SRID=27700;POINT (437300 115500)'));
+
+-- SCHEMA: graphile_postgis_mixed
+-- one generic geometry column with an SRID constraint, holding a different
+-- geometry subtype in each row
+
+drop schema if exists graphile_postgis_mixed cascade;
+create schema graphile_postgis_mixed;
+create table graphile_postgis_mixed.mixed_geoms (
+  id serial primary key,
+  geom geometry(geometry,4326)
+);
+insert into graphile_postgis_mixed.mixed_geoms (geom) values
+  (GeomFromEWKT('SRID=4326;POINT (30 10)')),
+  (GeomFromEWKT('SRID=4326;MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)))'));
