@@ -9,9 +9,11 @@ import { makePostGraphileSchema } from "../helpers";
 const readFile = promisify(fs.readFile);
 
 const queriesDir = `${__dirname}/../fixtures/queries`;
-const queryFileNames = fs.readdirSync(queriesDir);
+const queryFileNames = fs
+  .readdirSync(queriesDir)
+  .filter((fileName) => fileName.endsWith(".graphql"));
 
-const schemas = ["graphile_postgis"];
+const schemas = ["graphile_postgis", "graphile_postgis_mixed"];
 
 let pool: pg.Pool;
 let schema: GraphQLSchema;
@@ -36,9 +38,17 @@ for (const queryFileName of queryFileNames) {
       path.resolve(queriesDir, queryFileName),
       "utf8"
     );
+    const variablesPath = path.resolve(
+      queriesDir,
+      queryFileName.replace(/\.graphql$/, ".variables.json")
+    );
+    const variableValues = fs.existsSync(variablesPath)
+      ? JSON.parse(await readFile(variablesPath, "utf8"))
+      : undefined;
     const result = await grafast({
       schema,
       source: query,
+      variableValues,
       resolvedPreset,
       requestContext: {},
     });
