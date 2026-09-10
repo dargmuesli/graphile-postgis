@@ -1,4 +1,6 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { Step } from "postgraphile/grafast";
+import { lambda } from "postgraphile/grafast";
 import type { PostGISResolvedData } from "./types.ts";
 import { GIS_SUBTYPE } from "./constants.ts";
 import { getGISTypeName } from "./utils.ts";
@@ -45,16 +47,22 @@ export const Postgis_MultiPolygon_PolygonsPlugin: GraphileConfig.Plugin = {
           {
             polygons: {
               type: new GraphQLList(Polygon),
-              resolve(data: PostGISResolvedData) {
-                return (data.__geojson.coordinates as number[][][][]).map(
-                  (coord) => ({
-                    __gisType: getGISTypeName(GIS_SUBTYPE.Polygon, hasZ, hasM),
-                    __srid: data.__srid,
-                    __geojson: {
-                      type: "Polygon",
-                      coordinates: coord,
-                    },
-                  })
+              plan($data: Step<PostGISResolvedData>) {
+                return lambda($data, (data) =>
+                  (data.__geojson.coordinates as number[][][][]).map(
+                    (coord) => ({
+                      __gisType: getGISTypeName(
+                        GIS_SUBTYPE.Polygon,
+                        hasZ,
+                        hasM
+                      ),
+                      __srid: data.__srid,
+                      __geojson: {
+                        type: "Polygon",
+                        coordinates: coord,
+                      },
+                    })
+                  )
                 );
               },
             },

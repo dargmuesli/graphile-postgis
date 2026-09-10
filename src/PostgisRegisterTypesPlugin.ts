@@ -1,11 +1,16 @@
 import { sql } from "@dataplan/pg";
+import type { PgCodec, PgCodecWithAttributes } from "@dataplan/pg";
+import type { SQL } from "pg-sql2";
 import type { GraphQLInterfaceType } from "graphql";
+import { access } from "postgraphile/grafast";
+import type { Step } from "postgraphile/grafast";
 import type {
   Subtype,
   TypeRegistry,
   InterfaceRegistry,
   PostGISResolvedData,
 } from "./types.ts";
+import debug from "./debug.ts";
 import {
   getGISTypeDetails,
   getGISTypeModifier,
@@ -32,11 +37,17 @@ declare global {
     }
   }
   namespace DataplanPg {
-    interface PgCodecAttributeExtensions {
+    interface PgCodecExtensions {
       postgisTypeModifier?: number;
+      postgisBaseCodecName?: string;
     }
   }
 }
+
+// Every typmod-specific column codec (see `pgCodecs_attribute` below) needs a
+// name of its own, since the registry rejects two different codec objects
+// sharing a name; this is never surfaced in the schema.
+let postgisCodecCloneCounter = 0;
 
 export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
   name: "PostgisRegisterTypesPlugin",
@@ -51,11 +62,29 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         if (typeName === "geometry" || typeName === "geography") {
           const namespace = pgType.getNamespace();
           const schemaName = namespace?.nspname ?? "public";
+          const extSchema = sql.identifier(schemaName);
+
+          // Wraps the raw column reference to extract GIS metadata (type
+          // name, SRID, GeoJSON) as JSON text; `fromPg` below parses it back
+          // out. This is the same castFromPg/fromPg pairing dataplan-pg uses
+          // for its own date and range codecs, and it lets the framework's
+          // default attribute plan decode the value without us overriding it.
+          const castFromPg = (frag: SQL) =>
+            sql`(case when ${frag} is null then null else json_build_object(
+                '__gisType', ${extSchema}.postgis_type_name(
+                  ${extSchema}.geometrytype(${frag}),
+                  ${extSchema}.st_coorddim((${frag})::text)
+                ),
+                '__srid', ${extSchema}.st_srid(${frag}),
+                '__geojson', ${extSchema}.st_asgeojson(${frag})::json
+              ) end)::text`;
+
           // Create a text-like scalar codec for PostGIS types
           event.pgCodec = {
             name: typeName,
             sqlType: sql.identifier(schemaName, typeName),
-            fromPg: (value) => value,
+            castFromPg,
+            fromPg: (value) => JSON.parse(value),
             toPg: (value) => geoJsonToWkt(value),
             attributes: undefined,
             extensions: {
@@ -65,7 +94,6 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                 serviceName: "postgis",
               },
             },
-            castFromPg: undefined,
             listCastFromPg: undefined,
             executor: null,
             isBinary: false,
@@ -78,18 +106,33 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
 
       async pgCodecs_attribute(_info, event) {
         const { pgAttribute, attribute } = event;
+        const baseCodec = attribute.codec;
         if (
-          attribute.codec &&
-          (attribute.codec.name === "geometry" ||
-            attribute.codec.name === "geography") &&
-          pgAttribute.atttypmod != null &&
-          pgAttribute.atttypmod !== -1
+          !baseCodec ||
+          (baseCodec.name !== "geometry" && baseCodec.name !== "geography")
         ) {
-          if (!attribute.extensions) {
-            attribute.extensions = { tags: {} };
-          }
-          attribute.extensions.postgisTypeModifier = pgAttribute.atttypmod;
+          return;
         }
+        const typeModifier = pgAttribute.atttypmod;
+        if (typeModifier == null || typeModifier === -1) {
+          return;
+        }
+        // Give this column its own codec object (identity-keyed) so its
+        // specific PostGIS GraphQL output type can be registered directly on
+        // the codec below, instead of generating a generic field here and
+        // overriding it afterwards. The registry indexes codecs by `.name`
+        // and rejects two different codec objects sharing a name, so each
+        // clone needs a name of its own; it's never surfaced in the schema
+        // (the GraphQL type name comes from `constructedTypes` instead).
+        attribute.codec = {
+          ...baseCodec,
+          name: `${baseCodec.name}_${++postgisCodecCloneCounter}`,
+          extensions: {
+            ...baseCodec.extensions,
+            postgisTypeModifier: typeModifier,
+            postgisBaseCodecName: baseCodec.name,
+          },
+        };
       },
     },
   },
@@ -146,20 +189,19 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           "Adding GeoJSON type from PostGIS plugin"
         );
 
-        // Map geometry and geography codecs to GeoJSON type
-        // This makes PostGIS columns appear in the schema with the GeoJSON type
-        // as a fallback; specific output types are overridden per-field by PostgisColumnsPlugin
+        // Writing a geometry/geography column is always done via GeoJSON,
+        // regardless of which specific shape the column is constrained to.
         if (pgGISGeometryCodec) {
           build.setGraphQLTypeForPgCodec(
             pgGISGeometryCodec,
-            ["input", "output"],
+            ["input"],
             geoJSONName
           );
         }
         if (pgGISGeographyCodec) {
           build.setGraphQLTypeForPgCodec(
             pgGISGeographyCodec,
-            ["input", "output"],
+            ["input"],
             geoJSONName
           );
         }
@@ -279,6 +321,24 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           }
         }
 
+        // Columns with no type modifier (a bare `geometry`/`geography`
+        // column, or a value from a custom SQL expression) can hold any
+        // shape, so they output through the top-level interface.
+        if (pgGISGeometryCodec) {
+          build.setGraphQLTypeForPgCodec(
+            pgGISGeometryCodec,
+            ["output"],
+            ensureGisInterface("geometry")
+          );
+        }
+        if (pgGISGeographyCodec) {
+          build.setGraphQLTypeForPgCodec(
+            pgGISGeographyCodec,
+            ["output"],
+            ensureGisInterface("geography")
+          );
+        }
+
         // Phase 2: Register ALL object types (must happen during init)
         const subtypes: Array<Subtype> = [1, 2, 3, 4, 5, 6, 7];
         for (const codecName of ["geometry", "geography"]) {
@@ -334,16 +394,16 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                           ? {
                               [geojsonFieldName]: {
                                 type: build.getTypeByName(geoJSONName),
-                                resolve(data: PostGISResolvedData) {
-                                  return data.__geojson;
+                                plan($data: Step<PostGISResolvedData>) {
+                                  return access($data, ["__geojson"]);
                                 },
                               },
                             }
                           : {}),
                         srid: {
                           type: new GraphQLNonNull(GraphQLInt),
-                          resolve(data: PostGISResolvedData) {
-                            return data.__srid;
+                          plan($data: Step<PostGISResolvedData>) {
+                            return access($data, ["__srid"]);
                           },
                         },
                       }),
@@ -365,6 +425,44 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                   ensureGisDimensionInterface(codecName, hasZ, hasM);
               }
             }
+          }
+        }
+
+        // Phase 3: Now that every specific type/interface name is known,
+        // register the correct output type directly on each column's own
+        // codec (cloned per type modifier in the `pgCodecs_attribute` gather
+        // hook above). This means the framework's default attribute plan
+        // already produces a correctly-typed field, so no plugin needs to
+        // generate a field and then overwrite it.
+        const seenCodecs = new Set<PgCodec>();
+        for (const resource of Object.values(build.pgResources)) {
+          const resourceCodec = resource.codec as PgCodecWithAttributes;
+          if (!resourceCodec.attributes) continue;
+
+          for (const attribute of Object.values(resourceCodec.attributes)) {
+            const attrCodec = attribute.codec;
+            const typeModifier = attrCodec.extensions?.postgisTypeModifier;
+            if (typeModifier == null || seenCodecs.has(attrCodec)) continue;
+            seenCodecs.add(attrCodec);
+
+            const codecName = attrCodec.extensions?.postgisBaseCodecName;
+            if (!codecName) continue;
+            const typeDetails = getGISTypeDetails(typeModifier);
+            const gisTypeKey = getGISTypeName(
+              typeDetails.subtype,
+              typeDetails.hasZ,
+              typeDetails.hasM
+            );
+            const typeName = constructedTypes[codecName]?.[gisTypeKey];
+            if (!typeName) {
+              debug(
+                `Unexpectedly couldn't find a type for ${codecName} ${gisTypeKey}`
+              );
+              continue;
+            }
+
+            build.setGraphQLTypeForPgCodec(attrCodec, ["input"], geoJSONName);
+            build.setGraphQLTypeForPgCodec(attrCodec, ["output"], typeName);
           }
         }
 

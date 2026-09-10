@@ -1,4 +1,5 @@
-import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { Step } from "postgraphile/grafast";
+import { lambda } from "postgraphile/grafast";
 import type { PostGISResolvedData, Subtype } from "./types.ts";
 import debug from "./debug.ts";
 import { GIS_SUBTYPE } from "./constants.ts";
@@ -19,6 +20,7 @@ export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin 
           } = context;
           if (
             !isPgGISType ||
+            !pgGISTypeName ||
             !pgGISTypeDetails ||
             pgGISTypeDetails.subtype !== GIS_SUBTYPE.GeometryCollection
           ) {
@@ -32,15 +34,13 @@ export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin 
           const { hasZ, hasM } = pgGISTypeDetails;
           const zmflag = (hasZ ? 2 : 0) + (hasM ? 1 : 0);
           const interfaceTypeName =
-            pgGISGraphQLInterfaceTypesByType[pgGISTypeName!]?.[zmflag];
+            pgGISGraphQLInterfaceTypesByType[pgGISTypeName]?.[zmflag];
           if (!interfaceTypeName) {
             debug("Unexpectedly couldn't find the interface");
             return fields;
           }
-          const Interface = build.getTypeByName(
-            interfaceTypeName
-          ) as GraphQLOutputType;
-          if (!Interface) {
+          const Interface = build.getTypeByName(interfaceTypeName);
+          if (!build.graphql.isOutputType(Interface)) {
             debug("Unexpectedly couldn't find the interface type");
             return fields;
           }
@@ -50,20 +50,22 @@ export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin 
             {
               geometries: {
                 type: new GraphQLList(Interface),
-                resolve(data: PostGISResolvedData) {
-                  return data.__geojson.geometries!.map((geom) => {
-                    return {
-                      __gisType: getGISTypeName(
-                        GIS_SUBTYPE[
-                          geom.type as keyof typeof GIS_SUBTYPE
-                        ] as Subtype,
-                        hasZ,
-                        hasM
-                      ),
-                      __srid: data.__srid,
-                      __geojson: geom,
-                    } satisfies PostGISResolvedData;
-                  });
+                plan($data: Step<PostGISResolvedData>) {
+                  return lambda($data, (data) =>
+                    data.__geojson.geometries!.map((geom) => {
+                      return {
+                        __gisType: getGISTypeName(
+                          GIS_SUBTYPE[
+                            geom.type as keyof typeof GIS_SUBTYPE
+                          ] as Subtype,
+                          hasZ,
+                          hasM
+                        ),
+                        __srid: data.__srid,
+                        __geojson: geom,
+                      } satisfies PostGISResolvedData;
+                    })
+                  );
                 },
               },
             },

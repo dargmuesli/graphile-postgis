@@ -1,4 +1,6 @@
 import type { GraphQLOutputType } from "postgraphile/graphql";
+import type { Step } from "postgraphile/grafast";
+import { lambda } from "postgraphile/grafast";
 import type { PostGISResolvedData } from "./types.ts";
 import { GIS_SUBTYPE } from "./constants.ts";
 import { getGISTypeName } from "./utils.ts";
@@ -45,8 +47,8 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
           {
             exterior: {
               type: LineString,
-              resolve(data: PostGISResolvedData) {
-                return {
+              plan($data: Step<PostGISResolvedData>) {
+                return lambda($data, (data) => ({
                   __gisType: getGISTypeName(GIS_SUBTYPE.LineString, hasZ, hasM),
                   __srid: data.__srid,
                   __geojson: {
@@ -55,26 +57,28 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
                       data.__geojson.coordinates as number[][][]
                     )[0],
                   },
-                };
+                }));
               },
             },
             interiors: {
               type: new GraphQLList(LineString),
-              resolve(data: PostGISResolvedData) {
-                return (data.__geojson.coordinates as number[][][])
-                  .slice(1)
-                  .map((coord) => ({
-                    __gisType: getGISTypeName(
-                      GIS_SUBTYPE.LineString,
-                      hasZ,
-                      hasM
-                    ),
-                    __srid: data.__srid,
-                    __geojson: {
-                      type: "LineString",
-                      coordinates: coord,
-                    },
-                  }));
+              plan($data: Step<PostGISResolvedData>) {
+                return lambda($data, (data) =>
+                  (data.__geojson.coordinates as number[][][])
+                    .slice(1)
+                    .map((coord) => ({
+                      __gisType: getGISTypeName(
+                        GIS_SUBTYPE.LineString,
+                        hasZ,
+                        hasM
+                      ),
+                      __srid: data.__srid,
+                      __geojson: {
+                        type: "LineString",
+                        coordinates: coord,
+                      },
+                    }))
+                );
               },
             },
           },

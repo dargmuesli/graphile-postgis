@@ -4,7 +4,6 @@ import { PostgisVersionPlugin } from "./PostgisVersionPlugin.ts";
 import { PostgisInflectionPlugin } from "./PostgisInflectionPlugin.ts";
 import { PostgisExtensionDetectionPlugin } from "./PostgisExtensionDetectionPlugin.ts";
 import { PostgisRegisterTypesPlugin } from "./PostgisRegisterTypesPlugin.ts";
-import { PostgisColumnsPlugin } from "./PostgisColumnsPlugin.ts";
 import { Postgis_Point_LatitudeLongitudePlugin } from "./Postgis_Point_LatitudeLongitudePlugin.ts";
 import { Postgis_GeometryCollection_GeometriesPlugin } from "./Postgis_GeometryCollection_GeometriesPlugin.ts";
 import { Postgis_LineString_PointsPlugin } from "./Postgis_LineString_PointsPlugin.ts";
@@ -19,7 +18,6 @@ const PostgisPreset: GraphileConfig.Preset = {
     PostgisInflectionPlugin,
     PostgisExtensionDetectionPlugin,
     PostgisRegisterTypesPlugin,
-    PostgisColumnsPlugin,
 
     Postgis_Point_LatitudeLongitudePlugin,
     Postgis_LineString_PointsPlugin,
@@ -38,7 +36,6 @@ export {
   PostgisInflectionPlugin,
   PostgisExtensionDetectionPlugin,
   PostgisRegisterTypesPlugin,
-  PostgisColumnsPlugin,
   Postgis_Point_LatitudeLongitudePlugin,
   Postgis_LineString_PointsPlugin,
   Postgis_Polygon_RingsPlugin,
@@ -68,7 +65,6 @@ declare global {
       PostgisInflectionPlugin: true;
       PostgisExtensionDetectionPlugin: true;
       PostgisRegisterTypesPlugin: true;
-      PostgisColumnsPlugin: true;
       Postgis_Point_LatitudeLongitudePlugin: true;
       Postgis_LineString_PointsPlugin: true;
       Postgis_Polygon_RingsPlugin: true;

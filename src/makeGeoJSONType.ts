@@ -31,7 +31,7 @@ SOFTWARE.
 export default function makeGeoJSONType(
   graphql: Pick<typeof GraphQL, "Kind">,
   name = "GeoJSON"
-) {
+): Omit<GraphQL.GraphQLScalarTypeConfig<any, any>, "name"> {
   const Kind: typeof GraphQL.Kind = graphql.Kind;
 
   function identity<T>(value: T): T {

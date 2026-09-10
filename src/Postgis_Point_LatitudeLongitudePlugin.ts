@@ -1,3 +1,5 @@
+import type { Step } from "postgraphile/grafast";
+import { lambda } from "postgraphile/grafast";
 import type { PostGISResolvedData } from "./types.ts";
 import { GIS_SUBTYPE } from "./constants.ts";
 import { version } from "./version.ts";
@@ -42,22 +44,31 @@ export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
           {
             [xFieldName]: {
               type: new GraphQLNonNull(GraphQLFloat),
-              resolve(data: PostGISResolvedData) {
-                return (data.__geojson.coordinates as number[])[0];
+              plan($data: Step<PostGISResolvedData>) {
+                return lambda(
+                  $data,
+                  (data) => (data.__geojson.coordinates as number[])[0]
+                );
               },
             },
             [yFieldName]: {
               type: new GraphQLNonNull(GraphQLFloat),
-              resolve(data: PostGISResolvedData) {
-                return (data.__geojson.coordinates as number[])[1];
+              plan($data: Step<PostGISResolvedData>) {
+                return lambda(
+                  $data,
+                  (data) => (data.__geojson.coordinates as number[])[1]
+                );
               },
             },
             ...(pgGISTypeDetails.hasZ
               ? {
                   [zFieldName]: {
                     type: new GraphQLNonNull(GraphQLFloat),
-                    resolve(data: PostGISResolvedData) {
-                      return (data.__geojson.coordinates as number[])[2];
+                    plan($data: Step<PostGISResolvedData>) {
+                      return lambda(
+                        $data,
+                        (data) => (data.__geojson.coordinates as number[])[2]
+                      );
                     },
                   },
                 }
