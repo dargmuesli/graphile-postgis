@@ -3,6 +3,7 @@ import type {
   GISInterfaceInflectionDetails,
   GISDimensionInterfaceInflectionDetails,
   GISFieldInflectionDetails,
+  GISModifiedCodecInflectionDetails,
 } from "./types.ts";
 import { SUBTYPE_STRING_BY_SUBTYPE } from "./constants.ts";
 import { version } from "./version.ts";
@@ -56,6 +57,13 @@ export const PostgisInflectionPlugin: GraphileConfig.Plugin = {
       },
       gisZFieldName(_preset, details: GISFieldInflectionDetails) {
         return details.typeName === "geography" ? "height" : "z";
+      },
+      pgGISModifiedCodecName(
+        _preset,
+        details: GISModifiedCodecInflectionDetails
+      ) {
+        const { baseCodecName, typeModifier } = details;
+        return `${baseCodecName}__${typeModifier}`;
       },
     },
   },

@@ -39,15 +39,9 @@ declare global {
   namespace DataplanPg {
     interface PgCodecExtensions {
       postgisTypeModifier?: number;
-      postgisBaseCodecName?: string;
     }
   }
 }
-
-// Every typmod-specific column codec (see `pgCodecs_attribute` below) needs a
-// name of its own, since the registry rejects two different codec objects
-// sharing a name; this is never surfaced in the schema.
-let postgisCodecCloneCounter = 0;
 
 export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
   name: "PostgisRegisterTypesPlugin",
@@ -104,33 +98,32 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         }
       },
 
-      async pgCodecs_attribute(_info, event) {
-        const { pgAttribute, attribute } = event;
-        const baseCodec = attribute.codec;
-        if (
-          !baseCodec ||
-          (baseCodec.name !== "geometry" && baseCodec.name !== "geography")
-        ) {
+      async pgCodecs_findModifiedPgCodec(info, event) {
+        const { baseCodec, typeModifier } = event;
+        if (baseCodec.name !== "geometry" && baseCodec.name !== "geography") {
           return;
         }
-        const typeModifier = pgAttribute.atttypmod;
-        if (typeModifier == null || typeModifier === -1) {
+        const numericModifier =
+          typeof typeModifier === "string"
+            ? parseInt(typeModifier, 10)
+            : typeModifier;
+        if (numericModifier === -1) {
           return;
         }
-        // Give this column its own codec object (identity-keyed) so its
-        // specific PostGIS GraphQL output type can be registered directly on
-        // the codec below, instead of generating a generic field here and
-        // overriding it afterwards. The registry indexes codecs by `.name`
-        // and rejects two different codec objects sharing a name, so each
-        // clone needs a name of its own; it's never surfaced in the schema
-        // (the GraphQL type name comes from `constructedTypes` instead).
-        attribute.codec = {
+        // Register a codec for this specific type modifier (shared by every
+        // column that uses it) so its PostGIS GraphQL output type can be set
+        // directly on the codec below, instead of generating a generic field
+        // and overriding it afterwards.
+        event.pgCodec = {
           ...baseCodec,
-          name: `${baseCodec.name}_${++postgisCodecCloneCounter}`,
+          name: info.inflection.pgGISModifiedCodecName({
+            baseCodecName: baseCodec.name,
+            typeModifier: numericModifier,
+          }),
+          baseCodec,
           extensions: {
             ...baseCodec.extensions,
-            postgisTypeModifier: typeModifier,
-            postgisBaseCodecName: baseCodec.name,
+            postgisTypeModifier: numericModifier,
           },
         };
       },
@@ -430,10 +423,11 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
 
         // Phase 3: Now that every specific type/interface name is known,
         // register the correct output type directly on each column's own
-        // codec (cloned per type modifier in the `pgCodecs_attribute` gather
-        // hook above). This means the framework's default attribute plan
-        // already produces a correctly-typed field, so no plugin needs to
-        // generate a field and then overwrite it.
+        // codec (registered per type modifier in the
+        // `pgCodecs_findModifiedPgCodec` gather hook above). This means the
+        // framework's default attribute plan already produces a
+        // correctly-typed field, so no plugin needs to generate a field and
+        // then overwrite it.
         const seenCodecs = new Set<PgCodec>();
         for (const resource of Object.values(build.pgResources)) {
           const resourceCodec = resource.codec as PgCodecWithAttributes;
@@ -445,7 +439,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
             if (typeModifier == null || seenCodecs.has(attrCodec)) continue;
             seenCodecs.add(attrCodec);
 
-            const codecName = attrCodec.extensions?.postgisBaseCodecName;
+            const codecName = attrCodec.baseCodec?.name;
             if (!codecName) continue;
             const typeDetails = getGISTypeDetails(typeModifier);
             const gisTypeKey = getGISTypeName(

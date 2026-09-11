@@ -87,6 +87,15 @@ export interface GISDimensionInterfaceInflectionDetails extends Pick<
 export type GISFieldInflectionDetails = BaseGISInflectionDetails;
 
 /**
+ * Inflection context for naming a codec that's specific to a PostGIS type
+ * modifier (never surfaced in the schema; only needs to be unique)
+ */
+export interface GISModifiedCodecInflectionDetails {
+  baseCodecName: string;
+  typeModifier: number;
+}
+
+/**
  * Type-safe registry of constructed GraphQL types by codec and subtype
  */
 export interface TypeRegistry {
@@ -173,6 +182,11 @@ declare global {
       gisZFieldName(
         this: Inflection,
         details: GISFieldInflectionDetails
+      ): string;
+
+      pgGISModifiedCodecName(
+        this: Inflection,
+        details: GISModifiedCodecInflectionDetails
       ): string;
     }
   }
