@@ -1,38 +1,40 @@
-import { Plugin } from "graphile-build";
-import { GIS_SUBTYPE } from "./constants";
-import { getGISTypeName } from "./utils";
+import type { Step } from "postgraphile/grafast";
+import type { PostGISResolvedData } from "./types.ts";
+import { GIS_SUBTYPE } from "./constants.ts";
+import { getGISTypeName } from "./utils.ts";
+import { version } from "./version.ts";
 
-const plugin: Plugin = builder => {
-  builder.hook("GraphQLObjectType:fields", (fields, build, context) => {
-    const {
-      scope: { isPgGISType, pgGISType, pgGISTypeDetails },
-    } = context;
-    if (
-      !isPgGISType ||
-      !pgGISTypeDetails ||
-      pgGISTypeDetails.subtype !== GIS_SUBTYPE.MultiPoint
-    ) {
-      return fields;
-    }
-    const {
-      extend,
-      getPostgisTypeByGeometryType,
-      graphql: { GraphQLList },
-    } = build;
-    const { hasZ, hasM, srid } = pgGISTypeDetails;
-    const Point = getPostgisTypeByGeometryType(
-      pgGISType,
-      GIS_SUBTYPE.Point,
-      hasZ,
-      hasM,
-      srid
-    );
+export const Postgis_MultiPoint_PointsPlugin: GraphileConfig.Plugin = {
+  name: "Postgis_MultiPoint_PointsPlugin",
+  description: "Enhancing the `MultiPoint` type",
+  version,
 
-    return extend(fields, {
-      points: {
-        type: new GraphQLList(Point),
-        resolve(data: any) {
-          return data.__geojson.coordinates.map((coord: any) => ({
+  schema: {
+    hooks: {
+      GraphQLObjectType_fields(fields, build, context) {
+        const { pgGISType } = context.scope;
+        if (pgGISType?.subtype !== GIS_SUBTYPE.MultiPoint) {
+          return fields;
+        }
+        const {
+          extend,
+          getPostgisTypeNameByGeometryType,
+          grafast: { lambda },
+          graphql: { GraphQLList },
+        } = build;
+        const { hasZ, hasM, srid } = pgGISType;
+        const typeName = getPostgisTypeNameByGeometryType(
+          pgGISType.typeName,
+          GIS_SUBTYPE.Point,
+          hasZ,
+          hasM,
+          srid
+        );
+        const Point = typeName ? build.getTypeByName(typeName) : null;
+        if (!build.graphql.isOutputType(Point)) return fields;
+
+        const getPoints = (data: PostGISResolvedData) =>
+          (data.__geojson.coordinates as number[][]).map((coord) => ({
             __gisType: getGISTypeName(GIS_SUBTYPE.Point, hasZ, hasM),
             __srid: data.__srid,
             __geojson: {
@@ -40,9 +42,23 @@ const plugin: Plugin = builder => {
               coordinates: coord,
             },
           }));
-        },
+        getPoints.isSyncAndSafe = true;
+
+        return extend(
+          fields,
+          {
+            points: {
+              type: new GraphQLList(Point),
+              plan($data: Step<PostGISResolvedData>) {
+                return lambda($data, getPoints);
+              },
+            },
+          },
+          "PostGIS MultiPoint points field"
+        );
       },
-    });
-  });
+    },
+  },
 };
-export default plugin;
+
+export default Postgis_MultiPoint_PointsPlugin;
