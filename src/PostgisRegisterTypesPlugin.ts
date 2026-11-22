@@ -158,12 +158,6 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
               return constructedTypes?.[codecName]?.[gisTypeKey];
             },
             pgGISImplementationsByInterface: new Map<string, string[]>(),
-            pgGISIncludedTypes: [] as string[],
-            pgGISIncludeType(typeName: string) {
-              if (typeName) {
-                this.pgGISIncludedTypes.push(typeName);
-              }
-            },
           },
           "PostGIS type registration"
         );
@@ -498,7 +492,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
             return types;
           }
 
-          const includedTypes = new Set(build.pgGISIncludedTypes);
+          const includedTypes = new Set<string>();
           for (const type of types) {
             const implementations = build.pgGISImplementationsByInterface.get(
               type.name
