@@ -42,6 +42,7 @@ export const Postgis_MultiPoint_PointsPlugin: GraphileConfig.Plugin = {
               coordinates: coord,
             },
           }));
+        getPoints.isSyncAndSafe = true;
 
         return extend(
           fields,

@@ -50,6 +50,7 @@ export const Postgis_GeometryCollection_GeometriesPlugin: GraphileConfig.Plugin 
                 __geojson: geom,
               } satisfies PostGISResolvedData;
             });
+          getGeometries.isSyncAndSafe = true;
 
           return extend(
             fields,

@@ -145,16 +145,6 @@ declare global {
        * Registered GraphQL object type names for each PostGIS interface.
        */
       pgGISImplementationsByInterface: Map<string, string[]>;
-
-      /**
-       * List of type names to include in the schema
-       */
-      pgGISIncludedTypes: string[];
-
-      /**
-       * Add a type to the inclusion list
-       */
-      pgGISIncludeType(typeName: string): void;
     }
 
     interface Inflection {

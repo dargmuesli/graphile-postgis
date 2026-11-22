@@ -5,12 +5,15 @@ import { version } from "./version.ts";
 
 const getXCoordinate = (data: PostGISResolvedData) =>
   (data.__geojson.coordinates as number[])[0];
+getXCoordinate.isSyncAndSafe = true;
 
 const getYCoordinate = (data: PostGISResolvedData) =>
   (data.__geojson.coordinates as number[])[1];
+getYCoordinate.isSyncAndSafe = true;
 
 const getZCoordinate = (data: PostGISResolvedData) =>
   (data.__geojson.coordinates as number[])[2];
+getZCoordinate.isSyncAndSafe = true;
 
 export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
   name: "Postgis_Point_LatitudeLongitudePlugin",
