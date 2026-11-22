@@ -42,6 +42,7 @@ export const Postgis_MultiPolygon_PolygonsPlugin: GraphileConfig.Plugin = {
               coordinates: coord,
             },
           }));
+        getPolygons.isSyncAndSafe = true;
 
         return extend(
           fields,

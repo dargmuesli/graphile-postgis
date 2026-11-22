@@ -43,6 +43,7 @@ export const Postgis_MultiLineString_LineStringsPlugin: GraphileConfig.Plugin =
                 coordinates: coord,
               },
             }));
+          getLineStrings.isSyncAndSafe = true;
 
           return extend(
             fields,

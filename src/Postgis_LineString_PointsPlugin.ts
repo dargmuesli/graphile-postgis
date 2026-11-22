@@ -44,6 +44,7 @@ export const Postgis_LineString_PointsPlugin: GraphileConfig.Plugin = {
               },
             };
           });
+        getPoints.isSyncAndSafe = true;
 
         return extend(
           fields,

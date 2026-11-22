@@ -220,6 +220,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           function getTypeName(data: PostGISResolvedData) {
             return constructedTypes[codecName]?.[data.__gisType] ?? null;
           }
+          getTypeName.isSyncAndSafe = true;
           return ($data: Step<PostGISResolvedData>) => ({
             $__typename: lambda($data, getTypeName),
             planForType: () => $data,

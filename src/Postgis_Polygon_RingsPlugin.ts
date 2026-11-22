@@ -41,6 +41,7 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
             coordinates: (data.__geojson.coordinates as number[][][])[0],
           },
         });
+        getExterior.isSyncAndSafe = true;
 
         const getInteriors = (data: PostGISResolvedData) =>
           (data.__geojson.coordinates as number[][][])
@@ -53,6 +54,7 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
                 coordinates: coord,
               },
             }));
+        getInteriors.isSyncAndSafe = true;
 
         return extend(
           fields,
