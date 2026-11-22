@@ -1,7 +1,5 @@
 import type { PgCodec, PgCodecWithAttributes } from "postgraphile/@dataplan/pg";
 import type { SQL } from "postgraphile/@dataplan/pg/pg-sql2";
-import type { GraphQLInterfaceType } from "graphql";
-import { access } from "postgraphile/grafast";
 import type { Step } from "postgraphile/grafast";
 import type {
   Subtype,
@@ -50,13 +48,14 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
     hooks: {
       async pgCodecs_findPgCodec(info, event) {
         if (event.pgCodec) return; // Another plugin already handled this
-        const { pgType } = event;
+        const { pgType, serviceName } = event;
         const typeName = pgType.typname;
         if (typeName === "geometry" || typeName === "geography") {
           const { sql } = info.lib.dataplanPg;
           const namespace = pgType.getNamespace();
           const schemaName = namespace?.nspname ?? "public";
           const extSchema = sql.identifier(schemaName);
+          const tags = pgType.getTags();
 
           // Wraps the raw column reference to extract GIS metadata (type
           // name, SRID, GeoJSON) as JSON text; `fromPg` below parses it back
@@ -85,8 +84,9 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
               pg: {
                 name: typeName,
                 schemaName,
-                serviceName: "postgis",
+                serviceName,
               },
+              ...(Object.keys(tags).length > 0 ? { tags } : null),
             },
             listCastFromPg: undefined,
             executor: null,
@@ -145,32 +145,38 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
 
         const constructedTypes = build.pgGISGraphQLTypesByTypeAndSubtype;
 
-        build.getPostgisTypeByGeometryType = function (
-          codecName: string,
-          subtype: Subtype,
-          hasZ = false,
-          hasM = false
-        ) {
-          const gisTypeKey = getGISTypeName(subtype, hasZ, hasM);
-          return constructedTypes?.[codecName]?.[gisTypeKey];
-        };
-
-        build.pgGISIncludedTypes = [];
-        build.pgGISIncludeType = function (typeName: string) {
-          if (typeName) {
-            build.pgGISIncludedTypes!.push(typeName);
-          }
-        };
-
-        return build;
+        return build.extend(
+          build,
+          {
+            getPostgisTypeNameByGeometryType(
+              codecName: string,
+              subtype: Subtype,
+              hasZ = false,
+              hasM = false
+            ) {
+              const gisTypeKey = getGISTypeName(subtype, hasZ, hasM);
+              return constructedTypes?.[codecName]?.[gisTypeKey];
+            },
+            pgGISImplementationsByInterface: new Map<string, string[]>(),
+            pgGISIncludedTypes: [] as string[],
+            pgGISIncludeType(typeName: string) {
+              if (typeName) {
+                this.pgGISIncludedTypes.push(typeName);
+              }
+            },
+          },
+          "PostGIS type registration"
+        );
       },
 
       init(_, build, _context) {
         const {
-          graphql: { GraphQLInt, GraphQLNonNull },
+          grafast: { access, lambda },
+          graphql: { GraphQLInt, GraphQLNonNull, assertInterfaceType },
           inflection,
           pgGISGeographyCodec,
           pgGISGeometryCodec,
+          pgGISImplementationsByInterface: implementationsByInterface,
         } = build;
 
         if (!pgGISGeometryCodec && !pgGISGeographyCodec) {
@@ -206,9 +212,30 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         const geojsonFieldName = inflection.geojsonFieldName();
         const constructedTypes = build.pgGISGraphQLTypesByTypeAndSubtype;
         const _interfaces = build.pgGISGraphQLInterfaceTypesByType;
+        const codecs = {
+          geometry: pgGISGeometryCodec,
+          geography: pgGISGeographyCodec,
+        };
+        const codecNames = ["geometry", "geography"] as const;
+        const planGISType = {
+          geometry: makePlanGISType("geometry"),
+          geography: makePlanGISType("geography"),
+        };
+
+        function makePlanGISType(codecName: string) {
+          function getTypeName(data: PostGISResolvedData) {
+            return constructedTypes[codecName]?.[data.__gisType] ?? null;
+          }
+          return ($data: Step<PostGISResolvedData>) => ({
+            $__typename: lambda($data, getTypeName),
+            planForType: () => $data,
+          });
+        }
 
         // Helper to get or create top-level interface name (registers during init)
-        function ensureGisInterface(codecName: string): string {
+        function ensureGisInterface(
+          codecName: (typeof codecNames)[number]
+        ): string {
           const zmflag = -1;
           if (!_interfaces[codecName]) {
             _interfaces[codecName] = {};
@@ -216,6 +243,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           if (!_interfaces[codecName][zmflag]) {
             const interfaceName = inflection.gisInterfaceName({
               typeName: codecName,
+              codec: codecs[codecName] ?? undefined,
             });
             build.registerInterfaceType(
               interfaceName,
@@ -239,10 +267,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                     description: "Spatial reference identifier (SRID)",
                   },
                 }),
-                resolveType(value: PostGISResolvedData) {
-                  const Type = constructedTypes[codecName]?.[value.__gisType];
-                  return Type;
-                },
+                planType: planGISType[codecName],
                 description: `All ${codecName} types implement this interface`,
               }),
               `PostGIS ${codecName} interface`
@@ -254,7 +279,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
 
         // Helper to get or create dimension interface name (registers during init)
         function ensureGisDimensionInterface(
-          codecName: string,
+          codecName: (typeof codecNames)[number],
           hasZ: boolean,
           hasM: boolean
         ): string {
@@ -265,6 +290,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
           if (!_interfaces[codecName][zmflag]) {
             const interfaceName = inflection.gisDimensionInterfaceName({
               typeName: codecName,
+              codec: codecs[codecName] ?? undefined,
               hasZ,
               hasM,
             });
@@ -290,10 +316,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                     description: "Spatial reference identifier (SRID)",
                   },
                 }),
-                resolveType(value: PostGISResolvedData) {
-                  const Type = constructedTypes[codecName]?.[value.__gisType];
-                  return Type;
-                },
+                planType: planGISType[codecName],
                 description: `All ${codecName} ${
                   { 0: "XY", 1: "XYM", 2: "XYZ", 3: "XYZM" }[zmflag]
                 } types implement this interface`,
@@ -306,7 +329,7 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         }
 
         // Phase 1: Register ALL interfaces first (must happen during init)
-        for (const codecName of ["geometry", "geography"]) {
+        for (const codecName of codecNames) {
           // Top-level interface (e.g., GeometryInterface, GeographyInterface)
           ensureGisInterface(codecName);
 
@@ -338,7 +361,8 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
 
         // Phase 2: Register ALL object types (must happen during init)
         const subtypes: Array<Subtype> = [1, 2, 3, 4, 5, 6, 7];
-        for (const codecName of ["geometry", "geography"]) {
+        for (const codecName of codecNames) {
+          const codec = codecs[codecName] ?? undefined;
           if (!constructedTypes[codecName]) {
             constructedTypes[codecName] = {};
           }
@@ -356,36 +380,27 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                 if (!constructedTypes[codecName][gisTypeKey]) {
                   const typeName = inflection.gisType({
                     typeName: codecName,
+                    codec,
                     subtype,
                     hasZ,
                     hasM,
                   });
+                  const zmflag = (hasZ ? 2 : 0) + (hasM ? 1 : 0);
+                  const interfaceNames = [
+                    _interfaces[codecName]?.[-1],
+                    _interfaces[codecName]?.[zmflag],
+                  ].filter((name) => name != null);
 
                   build.registerObjectType(
                     typeName,
                     {
-                      isPgGISType: true,
-                      pgGISTypeName: codecName,
-                      pgGISTypeDetails: typeDetails,
+                      pgGISType: { typeName: codecName, codec, ...typeDetails },
                     },
                     () => ({
-                      interfaces: () => {
-                        const interfaceTypeName = _interfaces[codecName]?.[-1];
-                        const dimZmflag = (hasZ ? 2 : 0) + (hasM ? 1 : 0);
-                        const dimInterfaceTypeName =
-                          _interfaces[codecName]?.[dimZmflag];
-                        const ifaces: GraphQLInterfaceType[] = [];
-                        if (interfaceTypeName) {
-                          const iface = build.getTypeByName(interfaceTypeName);
-                          if (iface) ifaces.push(iface as GraphQLInterfaceType);
-                        }
-                        if (dimInterfaceTypeName) {
-                          const iface =
-                            build.getTypeByName(dimInterfaceTypeName);
-                          if (iface) ifaces.push(iface as GraphQLInterfaceType);
-                        }
-                        return ifaces;
-                      },
+                      interfaces: () =>
+                        interfaceNames.map((name) =>
+                          assertInterfaceType(build.getTypeByName(name))
+                        ),
                       fields: () => ({
                         ...(build.getTypeByName(geoJSONName)
                           ? {
@@ -408,6 +423,15 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
                     `PostGIS ${codecName} type ${gisTypeKey}`
                   );
                   constructedTypes[codecName][gisTypeKey] = typeName;
+                  for (const interfaceName of interfaceNames) {
+                    const implementations =
+                      implementationsByInterface.get(interfaceName);
+                    if (implementations) {
+                      implementations.push(typeName);
+                    } else {
+                      implementationsByInterface.set(interfaceName, [typeName]);
+                    }
+                  }
                 }
               }
             }
@@ -467,19 +491,30 @@ export const PostgisRegisterTypesPlugin: GraphileConfig.Plugin = {
         return _;
       },
 
-      // Ensure all PostGIS types are included in the schema
-      GraphQLSchema(schema, build) {
-        if (!build.pgGISGeometryCodec && !build.pgGISGeographyCodec) {
-          return schema;
-        }
-        const types = [...(schema.types || [])];
-        for (const typeName of build.pgGISIncludedTypes) {
-          const type = build.getTypeByName(typeName);
-          if (type) {
-            types.push(type);
+      GraphQLSchema_types: {
+        after: ["CollectReferencedTypesPlugin"],
+        callback(types, build) {
+          if (!build.pgGISGeometryCodec && !build.pgGISGeographyCodec) {
+            return types;
           }
-        }
-        return { ...schema, types };
+
+          const includedTypes = new Set(build.pgGISIncludedTypes);
+          for (const type of types) {
+            const implementations = build.pgGISImplementationsByInterface.get(
+              type.name
+            );
+            if (!implementations) continue;
+            for (const typeName of implementations) {
+              includedTypes.add(typeName);
+            }
+          }
+          const result = new Set(types);
+          for (const typeName of includedTypes) {
+            const type = build.getTypeByName(typeName);
+            if (type) result.add(type);
+          }
+          return [...result];
+        },
       },
     },
   },

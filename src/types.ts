@@ -1,3 +1,5 @@
+import type { PgCodec } from "postgraphile/@dataplan/pg";
+
 /**
  * PostGIS geometry/geography subtype enumeration
  * 0 = Geometry (generic)
@@ -50,6 +52,7 @@ export interface PostGISResolvedData {
  */
 export interface BaseGISInflectionDetails {
   typeName: string;
+  codec?: PgCodec;
   scope?: GraphileBuild.ScopeObject | GraphileBuild.ScopeInterface;
 }
 
@@ -67,16 +70,13 @@ export interface GISTypeInflectionDetails extends BaseGISInflectionDetails {
  */
 export type GISInterfaceInflectionDetails = Pick<
   BaseGISInflectionDetails,
-  "typeName"
+  "typeName" | "codec"
 >;
 
 /**
  * Inflection context for GIS dimension interface naming
  */
-export interface GISDimensionInterfaceInflectionDetails extends Pick<
-  BaseGISInflectionDetails,
-  "typeName"
-> {
+export interface GISDimensionInterfaceInflectionDetails extends GISInterfaceInflectionDetails {
   hasZ: boolean;
   hasM: boolean;
 }
@@ -116,16 +116,14 @@ export interface InterfaceRegistry {
 declare global {
   namespace GraphileBuild {
     interface ScopeObject {
-      isPgGISType?: boolean;
-      pgGISTypeName?: string;
-      pgGISTypeDetails?: GISTypeDetails;
+      pgGISType?: GISTypeDetails & GISInterfaceInflectionDetails;
     }
 
     interface Build {
       /**
-       * Get PostGIS GraphQL type name by geometry properties
+       * Get the registered GraphQL type name by geometry properties.
        */
-      getPostgisTypeByGeometryType(
+      getPostgisTypeNameByGeometryType(
         codecName: string,
         subtype: Subtype,
         hasZ?: boolean,
@@ -142,6 +140,11 @@ declare global {
        * Registry of PostGIS interface names by codec and zmflag
        */
       pgGISGraphQLInterfaceTypesByType: InterfaceRegistry;
+
+      /**
+       * Registered GraphQL object type names for each PostGIS interface.
+       */
+      pgGISImplementationsByInterface: Map<string, string[]>;
 
       /**
        * List of type names to include in the schema

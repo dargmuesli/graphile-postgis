@@ -33,7 +33,7 @@ have specific needs please get in touch!
 
 ## Usage
 
-This plugin requires PostGraphile **v5.0.0-rc.6** or higher to function correctly.
+This version of the plugin requires PostGraphile **v5.2.0** or higher.
 
 Add PostGIS to your database:
 

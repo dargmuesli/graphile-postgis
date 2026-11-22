@@ -1,8 +1,16 @@
 import type { Step } from "postgraphile/grafast";
-import { lambda } from "postgraphile/grafast";
 import type { PostGISResolvedData } from "./types.ts";
 import { GIS_SUBTYPE } from "./constants.ts";
 import { version } from "./version.ts";
+
+const getXCoordinate = (data: PostGISResolvedData) =>
+  (data.__geojson.coordinates as number[])[0];
+
+const getYCoordinate = (data: PostGISResolvedData) =>
+  (data.__geojson.coordinates as number[])[1];
+
+const getZCoordinate = (data: PostGISResolvedData) =>
+  (data.__geojson.coordinates as number[])[2];
 
 export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
   name: "Postgis_Point_LatitudeLongitudePlugin",
@@ -12,63 +20,45 @@ export const Postgis_Point_LatitudeLongitudePlugin: GraphileConfig.Plugin = {
   schema: {
     hooks: {
       GraphQLObjectType_fields(fields, build, context) {
-        const {
-          scope: { isPgGISType, pgGISTypeName, pgGISTypeDetails },
-        } = context;
-        if (
-          !isPgGISType ||
-          !pgGISTypeDetails ||
-          pgGISTypeDetails.subtype !== GIS_SUBTYPE.Point
-        ) {
+        const { pgGISType } = context.scope;
+        if (pgGISType?.subtype !== GIS_SUBTYPE.Point) {
           return fields;
         }
         const {
           extend,
+          grafast: { lambda },
           graphql: { GraphQLNonNull, GraphQLFloat },
           inflection,
         } = build;
-        const xFieldName = inflection.gisXFieldName({
-          typeName: pgGISTypeName!,
+        const details = {
+          typeName: pgGISType.typeName,
+          codec: pgGISType.codec,
           scope: context.scope,
-        });
-        const yFieldName = inflection.gisYFieldName({
-          typeName: pgGISTypeName!,
-          scope: context.scope,
-        });
-        const zFieldName = inflection.gisZFieldName({
-          typeName: pgGISTypeName!,
-          scope: context.scope,
-        });
+        };
+        const xFieldName = inflection.gisXFieldName(details);
+        const yFieldName = inflection.gisYFieldName(details);
+        const zFieldName = inflection.gisZFieldName(details);
         return extend(
           fields,
           {
             [xFieldName]: {
               type: new GraphQLNonNull(GraphQLFloat),
               plan($data: Step<PostGISResolvedData>) {
-                return lambda(
-                  $data,
-                  (data) => (data.__geojson.coordinates as number[])[0]
-                );
+                return lambda($data, getXCoordinate);
               },
             },
             [yFieldName]: {
               type: new GraphQLNonNull(GraphQLFloat),
               plan($data: Step<PostGISResolvedData>) {
-                return lambda(
-                  $data,
-                  (data) => (data.__geojson.coordinates as number[])[1]
-                );
+                return lambda($data, getYCoordinate);
               },
             },
-            ...(pgGISTypeDetails.hasZ
+            ...(pgGISType.hasZ
               ? {
                   [zFieldName]: {
                     type: new GraphQLNonNull(GraphQLFloat),
                     plan($data: Step<PostGISResolvedData>) {
-                      return lambda(
-                        $data,
-                        (data) => (data.__geojson.coordinates as number[])[2]
-                      );
+                      return lambda($data, getZCoordinate);
                     },
                   },
                 }

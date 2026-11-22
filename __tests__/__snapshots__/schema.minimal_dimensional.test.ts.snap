@@ -171,6 +171,59 @@ interface GeometryGeometry {
   srid: Int!
 }
 
+type GeometryGeometryCollection implements GeometryGeometry & GeometryInterface {
+  geojson: GeoJSON
+  geometries: [GeometryGeometry]
+  srid: Int!
+}
+
+"""All geometry types implement this interface"""
+interface GeometryInterface {
+  """Converts the object to GeoJSON"""
+  geojson: GeoJSON
+
+  """Spatial reference identifier (SRID)"""
+  srid: Int!
+}
+
+type GeometryLineString implements GeometryGeometry & GeometryInterface {
+  geojson: GeoJSON
+  points: [GeometryPoint]
+  srid: Int!
+}
+
+type GeometryMultiLineString implements GeometryGeometry & GeometryInterface {
+  geojson: GeoJSON
+  lines: [GeometryLineString]
+  srid: Int!
+}
+
+type GeometryMultiPoint implements GeometryGeometry & GeometryInterface {
+  geojson: GeoJSON
+  points: [GeometryPoint]
+  srid: Int!
+}
+
+type GeometryMultiPolygon implements GeometryGeometry & GeometryInterface {
+  geojson: GeoJSON
+  polygons: [GeometryPolygon]
+  srid: Int!
+}
+
+type GeometryPoint implements GeometryGeometry & GeometryInterface {
+  geojson: GeoJSON
+  srid: Int!
+  x: Float!
+  y: Float!
+}
+
+type GeometryPolygon implements GeometryGeometry & GeometryInterface {
+  exterior: GeometryLineString
+  geojson: GeoJSON
+  interiors: [GeometryLineString]
+  srid: Int!
+}
+
 """
 The root mutation type which contains root level fields which mutate data.
 """

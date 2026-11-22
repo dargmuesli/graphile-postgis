@@ -50,13 +50,13 @@
     "jest-serializer-graphql-schema": "^5.0.0-1.1",
     "nodemon": "^1.19.1",
     "pg": "^8.14.1",
-    "postgraphile": "5.2.0-aardvark.next-20260910230054",
+    "postgraphile": "5.2.0",
     "prettier": "^3.3.2",
     "ts-jest": "^29.4.6",
     "typescript": "^5.4.5"
   },
   "peerDependencies": {
-    "postgraphile": ">=5.2.0-aardvark.next-20260811203155"
+    "postgraphile": "^5.2.0"
   },
   "dependencies": {
     "debug": "^4.1.1",

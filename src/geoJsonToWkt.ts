@@ -1,4 +1,3 @@
-import type { SQLRawValue } from "postgraphile/@dataplan/pg/pg-sql2";
 import type { GeoJSONCoordinates, GeoJSONGeometry } from "./types.ts";
 
 // PostGIS's `geometry_in` happens to lenient-parse GeoJSON text directly (an
@@ -81,8 +80,8 @@ function toWktBody(geometry: GeoJSONGeometry): string {
 /**
  * Converts a GeoJSON geometry object into EWKT text that PostGIS's
  * `geometry_in`/`geography_in` will accept, for use as the SQL parameter
- * value when writing a geometry/geography column. Non-object values (e.g.
- * an already-WKT string, or null) are passed through unchanged.
+ * value when writing a geometry/geography column. WKT strings and null
+ * are passed through unchanged.
  *
  * `srid` defaults to 4326 (WGS 84) per RFC 7946, which mandates that GeoJSON
  * coordinates are always WGS 84 regardless of any `crs` member. Callers
@@ -90,14 +89,20 @@ function toWktBody(geometry: GeoJSONGeometry): string {
  * explicitly, since PostGIS rejects a typmod cast whose EWKT SRID conflicts
  * with the column's.
  */
-export function geoJsonToWkt(value: unknown, srid = 4326): SQLRawValue {
-  if (value == null || typeof value !== "object") {
-    return value as SQLRawValue;
+export function geoJsonToWkt(value: unknown, srid = 4326): string | null {
+  if (value == null) {
+    return null;
   }
-  const geometry = value as GeoJSONGeometry;
-  if (typeof geometry.type !== "string") {
-    return value as unknown as SQLRawValue;
+  if (typeof value === "string") {
+    return value;
+  }
+  if (
+    typeof value !== "object" ||
+    !("type" in value) ||
+    typeof value.type !== "string"
+  ) {
+    throw new Error("Expected a GeoJSON geometry or a WKT string");
   }
 
-  return `SRID=${srid};${toWktBody(geometry)}`;
+  return `SRID=${srid};${toWktBody(value as GeoJSONGeometry)}`;
 }

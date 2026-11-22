@@ -1,4 +1,4 @@
-import * as GraphQL from "postgraphile/graphql";
+import type * as GraphQL from "postgraphile/graphql";
 type Maybe<T> = null | undefined | T;
 
 // This file is based on

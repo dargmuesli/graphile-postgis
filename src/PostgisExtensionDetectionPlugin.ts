@@ -46,13 +46,14 @@ export const PostgisExtensionDetectionPlugin: GraphileConfig.Plugin = {
           debug("PostGIS plugin enabled");
         }
 
-        build.pgGISGraphQLTypesByTypeAndSubtype = {};
-        build.pgGISGraphQLInterfaceTypesByType = {};
-        build.pgGISGeometryCodec = pgGISGeometryCodec;
-        build.pgGISGeographyCodec = pgGISGeographyCodec;
-        build.pgGISExtensionSchema = pgGISExtensionSchema;
-
-        return build;
+        const postgis = {
+          pgGISGraphQLTypesByTypeAndSubtype: {},
+          pgGISGraphQLInterfaceTypesByType: {},
+          pgGISGeometryCodec,
+          pgGISGeographyCodec,
+          pgGISExtensionSchema,
+        };
+        return build.extend(build, postgis, "PostGIS extension detection");
       },
     },
   },

@@ -270,27 +270,27 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@dataplan/json@^1.0.2-aardvark.next-20260910230054":
-  version "1.0.2-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/@dataplan/json/-/json-1.0.2-aardvark.next-20260910230054.tgz#612c044e8c99bcc67ba65aa6809809198c75d983"
-  integrity sha512-FllYjawkMmKMQJlmKVyEKIhGyAZZEMOU5+aTlrURy4V1kniQ021xY465VIhC9UKKBuy1MKF0XGPQDGhNvPl/bQ==
+"@dataplan/json@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@dataplan/json/-/json-1.0.2.tgz#7b265a36363012d212a67fe94672178aac7dadd0"
+  integrity sha512-bk2joNsWI3AVI949RpER3VBr59p1c1d/AHeg4XxPSMQE5NYfkb7Vv8L3l4TaIivewE2heduj6Fi3U53tAvny7Q==
   dependencies:
     chalk "^4.1.2"
     tslib "^2.8.1"
 
-"@dataplan/pg@^1.2.0-aardvark.next-20260910230054":
-  version "1.2.0-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/@dataplan/pg/-/pg-1.2.0-aardvark.next-20260910230054.tgz#5b5bbf6f230fca2500ad7aa7c5cc03fa99f0c863"
-  integrity sha512-UIv4ff27WNe2sx5uks9dD83ap5B0lEjvebW0ZqmFqEWTt6RaPpcV47w1V9V3qX+rwVh9uBVKfqa2EJRK9jgroQ==
+"@dataplan/pg@^1.2.0":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@dataplan/pg/-/pg-1.2.1.tgz#4a17e48086e8cdadb26ea9dc43107541f3b704c9"
+  integrity sha512-GvpMG/U3a3lV0gWna50yYMNqXOcU9HzEJjWXvheqJt5gacAFBVtxAeyio2rcBScv/bMtJXjyn5cF923FnkTaSw==
   dependencies:
-    "@dataplan/json" "^1.0.2-aardvark.next-20260910230054"
-    "@graphile/lru" "^5.0.1-aardvark.next-20260910230054"
+    "@dataplan/json" "^1.0.2"
+    "@graphile/lru" "^5.0.1"
     "@types/node" "^22.19.1"
     chalk "^4.1.2"
     debug "^4.4.3"
     eventemitter3 "^5.0.1"
-    grafast "^1.2.0-aardvark.next-20260910230054"
-    pg-sql2 "^5.0.2-aardvark.next-20260910230054"
+    grafast "^1.2.0"
+    pg-sql2 "^5.0.2"
     postgres-array "~3.0.4"
     postgres-range "^1.1.4"
     tslib "^2.8.1"
@@ -365,17 +365,10 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.12.tgz#afefe785949f16ac4cdd1e695935a321572dd56a"
   integrity sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==
 
-"@graphile/lru@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@graphile/lru/-/lru-5.0.0.tgz#6be4e74056ad41c0d5e4860b7192fa7867feeb32"
-  integrity sha512-NeRBDdUd/l4H284HrYL2/wNHv/FmW5stAMPFAiBZanLHwq9J3suZTtyN5CwTxUFA/vgqzu0B1/9XtIEaJYEKig==
-  dependencies:
-    tslib "^2.8.1"
-
-"@graphile/lru@^5.0.1-aardvark.next-20260910230054":
-  version "5.0.1-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/@graphile/lru/-/lru-5.0.1-aardvark.next-20260910230054.tgz#e32181919905c72c4171b11b6d41cd5c958388cd"
-  integrity sha512-Qm6GCwp+875Rvz95dr0CFNkW+D98xUQywf5lNxyFhKseMKUt5exR8PH/rVtQn4KEd1A7egq0jvrJ42i3yAbdTw==
+"@graphile/lru@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@graphile/lru/-/lru-5.0.1.tgz#ae2e34308347efaa2d074c4fe448b46640aa16f0"
+  integrity sha512-qbAcza2wHgeFJgn0970mHCkgeMeYb8oqkciNZDunaULc5640cvGxqKEPhYTRpOE5zUgT9pZm+mAiyiu1hfyuHw==
   dependencies:
     tslib "^2.8.1"
 
@@ -2345,69 +2338,69 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.2.11:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
 
-grafast@^1.2.0-aardvark.next-20260910230054:
-  version "1.2.0-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/grafast/-/grafast-1.2.0-aardvark.next-20260910230054.tgz#253c2e46f578f4ed9a54cadb3436a69bd8958564"
-  integrity sha512-0CftvI9IccrzMMVMOFs9HBeWTTXaCy4ld1Gx/qJ3XOKVCCTgUyv7P7F5WkoccW5R/8bRpuEefBeww6DdJbKAxw==
+grafast@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/grafast/-/grafast-1.2.0.tgz#55f55a90af489f29cdbdcac1d894c6997099e753"
+  integrity sha512-c6f9Y/vMyEjJ8JCLmRImwMKLRCnm8nwExWgGPXuKniULpNF1csCr3X3O4shFFZ6cHLbyaMy6Efhg1UaKalU9MA==
   dependencies:
-    "@graphile/lru" "^5.0.1-aardvark.next-20260910230054"
+    "@graphile/lru" "^5.0.1"
     chalk "^4.1.2"
     debug "^4.4.3"
     eventemitter3 "^5.0.1"
-    graphile-config "^1.1.1-aardvark.next-20260910230054"
+    graphile-config "^1.1.2"
     graphql "^16.9.0"
     iterall "^1.3.0"
     tslib "^2.8.1"
 
-grafserv@^1.0.2-aardvark.next-20260910230054:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/grafserv/-/grafserv-1.0.2.tgz#8f8cb66db9723b055ce58b680399048e6cdb1b23"
-  integrity sha512-tWtj1TUNjVmNLzTiXqigYWUFGkQquI2fcZ1X/ij+q3iXsLLxUlMyodd0d3JxcQTe3rGCE2D42e5glIqbHF/rGA==
+grafserv@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/grafserv/-/grafserv-1.0.3.tgz#79cc26d6480c024673db7f1cf687947b0df13afa"
+  integrity sha512-FZiMyBwREbBrNtlLxDxQXW+TzlpNzvu7dQ/Fk/cRzYP/xPYYqwxKMGbiAHPqOX+K9cjZAoDxPmMj6eqeKBL2Ow==
   dependencies:
-    "@graphile/lru" "^5.0.0"
+    "@graphile/lru" "^5.0.1"
     debug "^4.4.3"
     eventemitter3 "^5.0.1"
-    graphile-config "^1.1.1"
+    graphile-config "^1.1.2"
     graphql-ws "^6.0.5"
-    ruru "^2.0.2"
+    ruru "^2.0.3"
     tslib "^2.8.1"
 
-graphile-build-pg@^5.2.0-aardvark.next-20260910230054:
-  version "5.2.0-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/graphile-build-pg/-/graphile-build-pg-5.2.0-aardvark.next-20260910230054.tgz#2844711e3806c93d9c40e60fe8a853d229ebe98c"
-  integrity sha512-lEL5Uw7a69kWvKxyJXp9XXB64DUVmEYWWfFz/tH1rH4TnzIWXXxuCh8Isjt2KT6ZRxrlYnTFHdQ/MaFRrh+SdA==
+graphile-build-pg@^5.2.0:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/graphile-build-pg/-/graphile-build-pg-5.2.1.tgz#220292ab04d9a4afce48f05f7fdaca82ec336d73"
+  integrity sha512-g6ddl4AbfsHKOKwq46yqN7yDTsmjnuuyZaH/hQlCXC96Eu2SOtXz0Ml8rlgFlO5Jbv50KFo/IQkDHH2yb9zd1w==
   dependencies:
     "@types/node" "^22.19.1"
     debug "^4.4.3"
-    graphile-config "^1.1.1-aardvark.next-20260910230054"
+    graphile-config "^1.1.2"
     jsonwebtoken "^9.0.2"
-    pg-introspection "^1.0.2-aardvark.next-20260910230054"
-    pg-sql2 "^5.0.2-aardvark.next-20260910230054"
+    pg-introspection "^1.0.2"
+    pg-sql2 "^5.0.2"
     tslib "^2.8.1"
 
-graphile-build@^5.2.0-aardvark.next-20260910230054:
-  version "5.2.0-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/graphile-build/-/graphile-build-5.2.0-aardvark.next-20260910230054.tgz#8c5ede62f8e2a64ac3f4b25eedea75b8df795e13"
-  integrity sha512-OgPt2dAcj27uQCoiSKB9ZVcl43dDa6Omtd6HGlPqGaiObi37hBHDhyzFfrOP4JZ8Q9OTS5NEtyH+cJTYt6UiAg==
+graphile-build@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/graphile-build/-/graphile-build-5.2.0.tgz#e7fef1ec0ac8b6986482798fecc47779aaddd5af"
+  integrity sha512-9ys7tRRbn7tb7A1gAmuR20M2KKQqlB858ziD+aBZDId82vOIBJBL6nZ3GwzBDtoFvHdRmmu6uktaGHaJidQnaA==
   dependencies:
     "@types/node" "^22.19.1"
     "@types/pluralize" "^0.0.33"
     "@types/semver" "^7.7.1"
     chalk "^4.1.2"
     debug "^4.4.3"
-    graphile-config "^1.1.1-aardvark.next-20260910230054"
+    graphile-config "^1.1.2"
     graphql "^16.9.0"
     lodash "^4.18.1"
     pluralize "^7.0.0"
     semver "^7.7.3"
-    tamedevil "^0.1.2-aardvark.next-20260910230054"
+    tamedevil "^0.1.2"
     transliteration "^2.3.5"
     tslib "^2.8.1"
 
-graphile-config@^1.1.1, graphile-config@^1.1.1-aardvark.next-20260910230054:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/graphile-config/-/graphile-config-1.1.1.tgz#970dd3a35cb3d1d4d36332412d83fdbefa7efed5"
-  integrity sha512-gRDzLguvWZIrYG58Kx+gJbGTExrJ98mM8wZ8l3x5lB9B1e+S3WopgvcTFVWOO2pSDVaZiZAR8zE/Z0d+E+MG2Q==
+graphile-config@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/graphile-config/-/graphile-config-1.1.2.tgz#a280897a68d9a94a3371e91a61ab689485d25d9c"
+  integrity sha512-4d+0uc+QIRL0D2N5jQR9yOGAxl9WjvldgFZbxdRvmm8uvJATB4KbJNK7GvmLIm384wfGTKasqchEMrR5S0OKGQ==
   dependencies:
     chalk "^4.1.2"
     debug "^4.4.3"
@@ -2416,10 +2409,10 @@ graphile-config@^1.1.1, graphile-config@^1.1.1-aardvark.next-20260910230054:
     tslib "^2.8.1"
     yargs "^17.7.2"
 
-graphile-utils@^5.1.0-aardvark.next-20260910230054:
-  version "5.1.0-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/graphile-utils/-/graphile-utils-5.1.0-aardvark.next-20260910230054.tgz#9f72da9266e10d3a8e6be86024a7faf3d9a2642d"
-  integrity sha512-bc9hmFrU5lj3vdVOgmnDD0PI46YsDPrwh+W2dZwN769+wh6t/x0L1Bp+IQF7cMS7LW8rd6WVYseVTVDdrApRlw==
+graphile-utils@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/graphile-utils/-/graphile-utils-5.1.0.tgz#40fca9ebc768d813b76ee30e163386129d192b35"
+  integrity sha512-YU/3FKOzctOiyIB6C4AU26nLauAmHOI3JaR3wfaQmbyrOVCHMVnJ8yTdq+X0Tb7z3DtBnNw0WrWEB/ZaVfofIA==
   dependencies:
     debug "^4.4.3"
     json5 "^2.2.3"
@@ -3787,10 +3780,10 @@ pg-int8@1.0.1:
   resolved "https://registry.yarnpkg.com/pg-int8/-/pg-int8-1.0.1.tgz#943bd463bf5b71b4170115f80f8efc9a0c0eb78c"
   integrity sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==
 
-pg-introspection@^1.0.2-aardvark.next-20260910230054:
-  version "1.0.2-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/pg-introspection/-/pg-introspection-1.0.2-aardvark.next-20260910230054.tgz#a6115174312529a4edb7736a46753856af5e8716"
-  integrity sha512-2BaRJv/360r9Yqo+UnxV3OmlleSdIr9DjNRwmhTUrvjpUg6bMCN7a+UWWJAqUrJAy12f6tKfpnYemOpmv7Jiwg==
+pg-introspection@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/pg-introspection/-/pg-introspection-1.0.2.tgz#ba66e3cbd9fcba844f7ae993939c45e4fc30ec4b"
+  integrity sha512-wI/qb/UkAlzTsNV9brtE44lOGPdFg7G4eOQ9WLizg+Fcpacl4FfZmD0nTg+kKH+0Ab9QFmQfHGzwVuGWsIWpPg==
   dependencies:
     tslib "^2.8.1"
 
@@ -3804,12 +3797,12 @@ pg-protocol@*, pg-protocol@^1.11.0, pg-protocol@^1.16.0:
   resolved "https://registry.yarnpkg.com/pg-protocol/-/pg-protocol-1.16.0.tgz#cffb008826561ee9770a8a15dc21f269d731b305"
   integrity sha512-sILXutLVjCLjcDuOmvhX5e2Z4cS5qG/6Bu3VkpFwdf/633ElGLpEh9bgmuI5I4sqKqkifQiGyiCcx1HdtrK7tg==
 
-pg-sql2@^5.0.2-aardvark.next-20260910230054:
-  version "5.0.2-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/pg-sql2/-/pg-sql2-5.0.2-aardvark.next-20260910230054.tgz#e147be7ca80adfca02da9ae7f5e0bafa88b808ff"
-  integrity sha512-8PssPSr8CDqCNpHbcv1VP9oZFpBnrHPphn+2dXmAfFSUUhmOkERhFqV/IqvsA4SMkoDOEsrN8Zw4UaitJqssPw==
+pg-sql2@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/pg-sql2/-/pg-sql2-5.0.2.tgz#bd0d9e0579f76ec306082451c390698a66e96c4a"
+  integrity sha512-wbJDMnqnnSM4l1dviXS9oit5wyenRZhHCRKLgjmg2dltoPxKaoomqQKJB6wlTkd1d75VZsovtB1T5VigiHY8uA==
   dependencies:
-    "@graphile/lru" "^5.0.1-aardvark.next-20260910230054"
+    "@graphile/lru" "^5.0.1"
     tslib "^2.8.1"
 
 pg-types@2.2.0, pg-types@^2.2.0:
@@ -3903,31 +3896,31 @@ posix-character-classes@^0.1.0:
   resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
   integrity sha512-xTgYBc3fuo7Yt7JbiuFxSYGToMoz8fLoE6TC9Wx1P/u+LfeThMOAqmuyECnlBaaJb+u1m9hHiXUEtwW4OzfUJg==
 
-postgraphile@5.2.0-aardvark.next-20260910230054:
-  version "5.2.0-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/postgraphile/-/postgraphile-5.2.0-aardvark.next-20260910230054.tgz#38b90ead6530c42b93a0d5817bfaf8f335ff0d00"
-  integrity sha512-5TFUFDKxF2WrEaxLVhSBEz0lC1IrYxyzF5+HyRPyzeXssaLc2XeA6sDu3G2XsEiDT7Bmekon9qIs5UNkS2bMmQ==
+postgraphile@5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/postgraphile/-/postgraphile-5.2.0.tgz#e36e753ea0ccb18173bea12c97c81442b0da5fcc"
+  integrity sha512-rLhh2sHiFe9iM6X+l9ABQKKR9x7QwVhitKjupRS45JbTiEchLBNwi1ZHiJg78uhiEKVD+RlxzOY++NZ7Nx38Kg==
   dependencies:
-    "@dataplan/json" "^1.0.2-aardvark.next-20260910230054"
-    "@dataplan/pg" "^1.2.0-aardvark.next-20260910230054"
-    "@graphile/lru" "^5.0.1-aardvark.next-20260910230054"
+    "@dataplan/json" "^1.0.2"
+    "@dataplan/pg" "^1.2.0"
+    "@graphile/lru" "^5.0.1"
     "@types/node" "^22.19.1"
     "@types/pg" "^8.15.6"
     debug "^4.4.3"
-    grafast "^1.2.0-aardvark.next-20260910230054"
-    grafserv "^1.0.2-aardvark.next-20260910230054"
-    graphile-build "^5.2.0-aardvark.next-20260910230054"
-    graphile-build-pg "^5.2.0-aardvark.next-20260910230054"
-    graphile-config "^1.1.1-aardvark.next-20260910230054"
-    graphile-utils "^5.1.0-aardvark.next-20260910230054"
+    grafast "^1.2.0"
+    grafserv "^1.0.3"
+    graphile-build "^5.2.0"
+    graphile-build-pg "^5.2.0"
+    graphile-config "^1.1.2"
+    graphile-utils "^5.1.0"
     graphql "^16.9.0"
     iterall "^1.3.0"
     jsonwebtoken "^9.0.2"
     pg "^8.16.3"
-    pg-sql2 "^5.0.2-aardvark.next-20260910230054"
-    tamedevil "^0.1.2-aardvark.next-20260910230054"
+    pg-sql2 "^5.0.2"
+    tamedevil "^0.1.2"
     tslib "^2.8.1"
-    ws "^8.18.3"
+    ws "^8.21.1"
 
 postgres-array@~2.0.0:
   version "2.0.0"
@@ -4176,24 +4169,24 @@ ret@~0.1.10:
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.15.tgz#b8a4825d5bdb1fc3f6f53c2bc33f81388681c7bc"
   integrity sha512-TTlYpa+OL+vMMNG24xSlQGEJ3B/RzEfUlLct7b5G/ytav+wPrplCpVMFuwzXbkecJrb6IYo1iFb0S9v37754mg==
 
-ruru-types@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/ruru-types/-/ruru-types-2.0.0.tgz#f60040b9c467def1a2d74a13dbcf93e5a4ea9ea7"
-  integrity sha512-7dBZHeU8Pnj0V+tLiPzr8RhpdsNuAwu5yhZqcolu6pzpItLG/LKKzN+gKAiCp17z6Lfpdu7bXs+9JS39PO+VxA==
+ruru-types@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/ruru-types/-/ruru-types-2.0.1.tgz#44704fe97e88fa9e622adef6dad89c0d867b76be"
+  integrity sha512-Mi3FcKQfS029D8BJ8CFpYZWOZXIGtLLisFaY8EMMoj4yQqL1BVzeob6It88a/OaBMkBhr45unyTRRA/iX8F5oQ==
   dependencies:
     "@graphiql/toolkit" "^0.11.3"
     graphiql "^5.2.1"
 
-ruru@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/ruru/-/ruru-2.0.2.tgz#6f9ee9047ccf650d48e9ec8496b6e0e6e597ccbe"
-  integrity sha512-WYTeVEdEcz9vZQCjXsH4wVlbRyv6lik4IjFtktk6xrkQR4dVmzJYQ3NpFkM1/+349v/RjRcZ6nB6mwyc83lNKA==
+ruru@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/ruru/-/ruru-2.0.3.tgz#293edcc7ac0bbc0fb006bfb2434a91dd1c25ea5d"
+  integrity sha512-OrflMfUVkZRz0SA0zb4azRLKuDwudv6fabSREdHRwWm7SUA30E5EcjskkszOyPjmKskfKPGNkURrHAx+kY/TeA==
   dependencies:
     "@emotion/is-prop-valid" "^1.4.0"
-    graphile-config "^1.1.1"
+    graphile-config "^1.1.2"
     graphql "^16.9.0"
     http-proxy "^1.18.1"
-    ruru-types "^2.0.0"
+    ruru-types "^2.0.1"
     tslib "^2.8.1"
     yargs "^17.7.2"
 
@@ -4530,12 +4523,12 @@ tabbable@^6.0.0:
   resolved "https://registry.yarnpkg.com/tabbable/-/tabbable-6.5.0.tgz#a65101385a4fd6cbd580b7546da0170f307b535d"
   integrity sha512-wieBHXygIm7OyQOu5hQlkk62/WyCFYGlWg7L6/ZCUZwx0o398Zkn4pVmMyfYhfMG8kGrj/Krt8eIk6UKC6VzwA==
 
-tamedevil@^0.1.2-aardvark.next-20260910230054:
-  version "0.1.2-aardvark.next-20260910230054"
-  resolved "https://registry.yarnpkg.com/tamedevil/-/tamedevil-0.1.2-aardvark.next-20260910230054.tgz#1461739092970b4c88b476a416038e4058596038"
-  integrity sha512-0/TndbaAVAV85UH1ByBN+sfoMXAtdx3SaD7IcOexSQ5Xy0xusRM/FSsUTv/Mhvp4VLxlmQF4bmR2o70EFL2GIA==
+tamedevil@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/tamedevil/-/tamedevil-0.1.2.tgz#a086444e059aea5bb43bcbcdc00aef7f6991266a"
+  integrity sha512-joKUBEHa9USsF+L20Mkwsu3r5EHkmEb/pp8FxPhTRKsHgX/9lC8ESo20TkhL6bBmuw8HgQChnMGrQBa8efb/Rw==
   dependencies:
-    "@graphile/lru" "^5.0.1-aardvark.next-20260910230054"
+    "@graphile/lru" "^5.0.1"
     tslib "^2.8.1"
 
 term-size@^1.2.0:
@@ -4895,10 +4888,10 @@ write-file-atomic@^5.0.1:
     imurmurhash "^0.1.4"
     signal-exit "^4.0.1"
 
-ws@^8.18.3:
-  version "8.21.3"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.21.3.tgz#660b4faddb6a3e575c86e078126919961f4de4fc"
-  integrity sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==
+ws@^8.21.1:
+  version "8.23.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.23.0.tgz#e1af4314ad9d4cfde4684d08a9f09b322830e84e"
+  integrity sha512-wCkmX8QMOrKjgO8HW2WyDbTSGeqkocxgDzS9iR79rEAexty6/2qzilx3Ag8Tqf9ykop3irLKle0MtVn5qjVnoQ==
 
 xdg-basedir@^3.0.0:
   version "3.0.0"

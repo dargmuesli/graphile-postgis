@@ -1,6 +1,4 @@
-import type { GraphQLOutputType } from "postgraphile/graphql";
 import type { Step } from "postgraphile/grafast";
-import { lambda } from "postgraphile/grafast";
 import type { PostGISResolvedData } from "./types.ts";
 import { GIS_SUBTYPE } from "./constants.ts";
 import { getGISTypeName } from "./utils.ts";
@@ -14,33 +12,47 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
   schema: {
     hooks: {
       GraphQLObjectType_fields(fields, build, context) {
-        const {
-          scope: { isPgGISType, pgGISTypeName, pgGISTypeDetails },
-        } = context;
-        if (
-          !isPgGISType ||
-          !pgGISTypeDetails ||
-          pgGISTypeDetails.subtype !== GIS_SUBTYPE.Polygon
-        ) {
+        const { pgGISType } = context.scope;
+        if (pgGISType?.subtype !== GIS_SUBTYPE.Polygon) {
           return fields;
         }
         const {
           extend,
-          getPostgisTypeByGeometryType,
+          getPostgisTypeNameByGeometryType,
+          grafast: { lambda },
           graphql: { GraphQLList },
         } = build;
-        const { hasZ, hasM, srid } = pgGISTypeDetails;
-        const lineStringTypeName = getPostgisTypeByGeometryType(
-          pgGISTypeName!,
+        const { hasZ, hasM, srid } = pgGISType;
+        const typeName = getPostgisTypeNameByGeometryType(
+          pgGISType.typeName,
           GIS_SUBTYPE.LineString,
           hasZ,
           hasM,
           srid
         );
-        const LineString = lineStringTypeName
-          ? (build.getTypeByName(lineStringTypeName) as GraphQLOutputType)
-          : null;
-        if (!LineString) return fields;
+        const LineString = typeName ? build.getTypeByName(typeName) : null;
+        if (!build.graphql.isOutputType(LineString)) return fields;
+
+        const getExterior = (data: PostGISResolvedData) => ({
+          __gisType: getGISTypeName(GIS_SUBTYPE.LineString, hasZ, hasM),
+          __srid: data.__srid,
+          __geojson: {
+            type: "LineString",
+            coordinates: (data.__geojson.coordinates as number[][][])[0],
+          },
+        });
+
+        const getInteriors = (data: PostGISResolvedData) =>
+          (data.__geojson.coordinates as number[][][])
+            .slice(1)
+            .map((coord) => ({
+              __gisType: getGISTypeName(GIS_SUBTYPE.LineString, hasZ, hasM),
+              __srid: data.__srid,
+              __geojson: {
+                type: "LineString",
+                coordinates: coord,
+              },
+            }));
 
         return extend(
           fields,
@@ -48,37 +60,13 @@ export const Postgis_Polygon_RingsPlugin: GraphileConfig.Plugin = {
             exterior: {
               type: LineString,
               plan($data: Step<PostGISResolvedData>) {
-                return lambda($data, (data) => ({
-                  __gisType: getGISTypeName(GIS_SUBTYPE.LineString, hasZ, hasM),
-                  __srid: data.__srid,
-                  __geojson: {
-                    type: "LineString",
-                    coordinates: (
-                      data.__geojson.coordinates as number[][][]
-                    )[0],
-                  },
-                }));
+                return lambda($data, getExterior);
               },
             },
             interiors: {
               type: new GraphQLList(LineString),
               plan($data: Step<PostGISResolvedData>) {
-                return lambda($data, (data) =>
-                  (data.__geojson.coordinates as number[][][])
-                    .slice(1)
-                    .map((coord) => ({
-                      __gisType: getGISTypeName(
-                        GIS_SUBTYPE.LineString,
-                        hasZ,
-                        hasM
-                      ),
-                      __srid: data.__srid,
-                      __geojson: {
-                        type: "LineString",
-                        coordinates: coord,
-                      },
-                    }))
-                );
+                return lambda($data, getInteriors);
               },
             },
           },
